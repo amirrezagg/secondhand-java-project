@@ -1,8 +1,8 @@
-module ca.aut.secondhand.frontend {
+module ir.aut.secondhand.frontend {
     requires javafx.controls;
     requires javafx.fxml;
 
 
-    opens ca.aut.secondhand.frontend to javafx.fxml;
-    exports ca.aut.secondhand.frontend;
+    opens ir.aut.secondhand.frontend to javafx.fxml;
+    exports ir.aut.secondhand.frontend;
 }

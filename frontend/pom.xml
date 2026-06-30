@@ -4,14 +4,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>ca.aut.secondhand</groupId>
+  <parent>
+    <groupId>ir.aut.ap</groupId>
+    <artifactId>secondhand-java-project</artifactId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <groupId>ir.aut.secondhand</groupId>
   <artifactId>frontend</artifactId>
   <version>1.0-SNAPSHOT</version>
   <name>frontend</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-<junit.version>5.12.1</junit.version>  </properties>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <junit.version>5.12.1</junit.version>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -24,8 +33,7 @@
       <artifactId>javafx-fxml</artifactId>
       <version>21.0.6</version>
     </dependency>
-
-<dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <version>${junit.version}</version>
@@ -36,7 +44,8 @@
       <artifactId>junit-jupiter-engine</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
-    </dependency>  </dependencies>
+    </dependency>
+  </dependencies>
 
   <build>
     <plugins>
@@ -44,10 +53,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
-        <configuration>
-          <source>8</source>
-          <target>8</target>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.openjfx</groupId>
@@ -55,10 +60,9 @@
         <version>0.0.8</version>
         <executions>
           <execution>
-            <!-- Default configuration for running with: mvn clean javafx:run -->
             <id>default-cli</id>
             <configuration>
-              <mainClass>ca.aut.secondhand.frontend/ca.aut.secondhand.frontend.HelloApplication</mainClass>
+              <mainClass>ir.aut.secondhand.frontend/ir.aut.secondhand.frontend.HelloApplication</mainClass>
               <launcher>app</launcher>
               <jlinkZipName>app</jlinkZipName>
               <jlinkImageName>app</jlinkImageName>

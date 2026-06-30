@@ -1,4 +1,4 @@
-package ca.aut.secondhand.frontend;
+package ir.aut.secondhand.frontend;
 
 import javafx.application.Application;
 

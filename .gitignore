@@ -1,17 +1,12 @@
-# IntelliJ
-.idea/
-*.iml
-
-# Build
 target/
-out/
-
-# Java
+**/target/
+.vscode/
+*.code-workspace
+.factorypath
+.project
+.classpath
+.settings/
 *.class
-
-# Logs
 *.log
-
-# OS
 .DS_Store
 Thumbs.db
