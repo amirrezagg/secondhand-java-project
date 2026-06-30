@@ -1,1 +1,1 @@
-# secondhand-java-project
+# Secondhand Java Project (AP Course - AUT 2026)
