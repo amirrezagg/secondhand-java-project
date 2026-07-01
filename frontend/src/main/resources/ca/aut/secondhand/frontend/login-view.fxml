@@ -29,7 +29,8 @@
 
     <Button fx:id="loginButton"
             text="Login"
-            maxWidth="250"/>
+            maxWidth="250"
+            onAction="#login"/>
 
     <HBox alignment="CENTER" spacing="5">
         <Label text="Don't have an account?"/>
