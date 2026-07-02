@@ -4,6 +4,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import java.io.IOException;
 
 public class LoginController {
     @FXML
@@ -29,5 +33,17 @@ public class LoginController {
 
         System.out.println("Username: " + username);
         System.out.println("Password: " + password);
+    }
+
+    @FXML
+    private void openSignUp() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/signup-view.fxml"));
+
+        Scene scene = new Scene(fxmlLoader.load(), 420, 600);
+
+        scene.getStylesheets().add(getClass().getResource("/ir/aut/secondhand/frontend/style.css").toExternalForm());
+
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+        stage.setScene(scene);
     }
 }
