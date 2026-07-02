@@ -10,10 +10,10 @@ import java.io.IOException;
 public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/ir/aut/secondhand/frontend/login-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/ir/aut/secondhand/frontend/fxml/login-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 420, 600);
         scene.getStylesheets().add(
-          HelloApplication.class.getResource("/ir/aut/secondhand/frontend/style.css").toExternalForm()
+          HelloApplication.class.getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm()
         );
         stage.setTitle("SecondHand Marketplace");
         stage.setScene(scene);

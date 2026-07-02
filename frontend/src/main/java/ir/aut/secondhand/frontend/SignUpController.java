@@ -55,11 +55,11 @@ public class SignUpController {
     @FXML
     private void openLogin() throws IOException{
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/login-view.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/login-view.fxml"));
 
         Scene scene = new Scene(loader.load(), 400, 500);
 
-        scene.getStylesheets().add(getClass().getResource("/ir/aut/secondhand/frontend/style.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
 
         Stage stage =(Stage) messageLabel.getScene().getWindow();
         stage.setScene(scene);
