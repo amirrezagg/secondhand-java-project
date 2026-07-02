@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="ir.aut.secondhand.frontend.SignUpController">
+
+    <VBox alignment="CENTER">
+
+        <VBox fx:id="loginCard"
+              alignment="CENTER"
+              spacing="15"
+              maxWidth="350">
+
+            <padding>
+                <Insets top="35" right="35" bottom="35" left="35"/>
+            </padding>
+
+            <Label text="Create Account"
+                   style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+
+            <TextField fx:id="nameField"
+                       promptText="Full Name"/>
+
+            <TextField fx:id="usernameField"
+                       promptText="Username"/>
+
+            <PasswordField fx:id="passwordField"
+                           promptText="Password"/>
+
+            <PasswordField fx:id="confirmPasswordField"
+                           promptText="Confirm Password"/>
+
+            <Button text="Sign Up"
+                    onAction="#signUp"
+                    maxWidth="Infinity"/>
+
+            <Label fx:id="messageLabel"
+                   text=""
+                   style="-fx-text-fill:red;"/>
+
+            <HBox alignment="CENTER" spacing="5">
+                <Label text="Already have an account?"/>
+                <Hyperlink text="Login"
+                           onAction="#openLogin"/>
+            </HBox>
+
+        </VBox>
+
+    </VBox>
+
+</StackPane>

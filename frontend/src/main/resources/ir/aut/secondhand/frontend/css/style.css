@@ -1,0 +1,50 @@
+.root{
+    -fx-background-image: url("../images/background.png");
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+    -fx-background-repeat: no-repeat;
+}
+
+#loginCard{
+    -fx-background-color: rgba(255,255,255,0.92);
+    -fx-background-radius: 20;
+    -fx-padding: 35;
+
+    -fx-effect: dropshadow(
+            gaussian,
+            rgba(0,0,0,0.35),
+            2035,
+            0,
+            0,
+            8
+    );
+}
+
+.text-field,
+.password-field{
+    -fx-font-size:14px;
+    -fx-pref-height:40px;
+    -fx-background-radius:8;
+}
+
+.button{
+    -fx-background-color:#1976D2;
+    -fx-text-fill:white;
+    -fx-font-size:15px;
+    -fx-font-weight:bold;
+    -fx-background-radius:8;
+    -fx-pref-height:42px;
+}
+
+.button:hover{
+    -fx-background-color:#1565C0;
+}
+
+.hyperlink{
+    -fx-text-fill:#1565C0;
+    -fx-font-weight:bold;
+}
+
+.label{
+    -fx-font-family:"Segoe UI";
+}

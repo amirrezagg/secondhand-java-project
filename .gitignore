@@ -1,6 +1,7 @@
 target/
 **/target/
 .vscode/
+.idea/
 *.code-workspace
 .factorypath
 .project
