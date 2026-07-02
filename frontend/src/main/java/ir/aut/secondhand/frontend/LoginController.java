@@ -39,11 +39,17 @@ public class LoginController {
     private void openSignUp() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/signup-view.fxml"));
 
-        Scene scene = new Scene(fxmlLoader.load(), 420, 600);
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+
+        boolean maximized = stage.isMaximized();
+        double width = stage.getWidth();
+        double height = stage.getHeight();
+
+        Scene scene = new Scene(fxmlLoader.load(), width, height);
 
         scene.getStylesheets().add(getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
 
-        Stage stage = (Stage) usernameField.getScene().getWindow();
         stage.setScene(scene);
+        stage.setMaximized(maximized);
     }
 }

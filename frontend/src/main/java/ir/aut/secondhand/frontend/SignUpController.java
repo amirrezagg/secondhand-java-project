@@ -53,15 +53,23 @@ public class SignUpController {
     }
 
     @FXML
-    private void openLogin() throws IOException{
+    private void openLogin() throws IOException {
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/login-view.fxml"));
+        FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/ir/aut/secondhand/frontend/fxml/login-view.fxml"));
 
-        Scene scene = new Scene(loader.load(), 400, 500);
+        Stage stage = (Stage) messageLabel.getScene().getWindow();
 
-        scene.getStylesheets().add(getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
+        boolean maximized = stage.isMaximized();
+        double width = stage.getWidth();
+        double height = stage.getHeight();
 
-        Stage stage =(Stage) messageLabel.getScene().getWindow();
+        Scene scene = new Scene(loader.load(), width, height);
+
+        scene.getStylesheets().add(
+                getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
+
         stage.setScene(scene);
+        stage.setMaximized(maximized);
     }
 }
