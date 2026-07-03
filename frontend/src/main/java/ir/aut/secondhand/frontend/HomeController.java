@@ -1,8 +1,13 @@
 package ir.aut.secondhand.frontend;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
+
+import java.io.IOException;
 
 public class HomeController {
 
@@ -10,7 +15,7 @@ public class HomeController {
     private TextField searchField;
 
     @FXML
-    private Button addAdvertismentButton;
+    private Button addAdvertisementButton;
 
     @FXML
     private Button messageButton;
@@ -24,10 +29,6 @@ public class HomeController {
     @FXML
     private Button logoutButton;
 
-    @FXML
-    private void addAdvertisement(){
-        System.out.println("Add Advertisement clicked");
-    }
 
     @FXML
     private void openMessages() {
@@ -47,5 +48,23 @@ public class HomeController {
     @FXML
     private void logout() {
         System.out.println("Logout clicked");
+    }
+
+    @FXML
+    private void addAdvertisement() throws IOException{
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/add-advertisement-view.fxml"));
+
+        Stage stage = (Stage) addAdvertisementButton.getScene().getWindow();
+
+        boolean maximized = stage.isMaximized();
+        double width = stage.getWidth();
+        double height = stage.getHeight();
+
+        Scene scene = new Scene(fxmlLoader.load(), width, height);
+
+        scene.getStylesheets().add(getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
+
+        stage.setScene(scene);
+        stage.setMaximized(maximized);
     }
 }

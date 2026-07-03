@@ -48,3 +48,36 @@
 .label{
     -fx-font-family:"Segoe UI";
 }
+
+.blue-combo {
+    -fx-background-color: #1E88E5;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+
+.blue-combo .arrow-button {
+    -fx-background-color: #1E88E5;
+    -fx-background-radius: 0 8 8 0;
+}
+
+.blue-combo .arrow {
+    -fx-background-color: white;
+}
+
+.blue-combo .list-cell {
+    -fx-background-color: #1E88E5;
+    -fx-text-fill: white;
+}
+
+.blue-combo .text {
+    -fx-fill: white;
+}
+
+.add-ad-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2937;
+    -fx-background-color: rgba(255,255,255,0.85);
+    -fx-background-radius: 12;
+    -fx-padding: 10 25 10 25;
+}
