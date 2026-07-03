@@ -6,7 +6,8 @@
 
 <StackPane xmlns="http://javafx.com/javafx/21"
            xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="ir.aut.secondhand.frontend.SignUpController">
+           fx:controller="ir.aut.secondhand.frontend.SignUpController"
+           styleClass="auth-root">
 
     <VBox alignment="CENTER">
 
