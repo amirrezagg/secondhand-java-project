@@ -46,8 +46,21 @@ public class HomeController {
     }
 
     @FXML
-    private void logout() {
-        System.out.println("Logout clicked");
+    private void logout() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/login-view.fxml"));
+
+        Stage stage = (Stage) logoutButton.getScene().getWindow();
+
+        boolean maximized = stage.isMaximized();
+        double width = stage.getWidth();
+        double height = stage.getHeight();
+
+        Scene scene = new Scene(fxmlLoader.load(), width, height);
+
+        scene.getStylesheets().add(getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
+
+        stage.setScene(scene);
+        stage.setMaximized(maximized);
     }
 
     @FXML

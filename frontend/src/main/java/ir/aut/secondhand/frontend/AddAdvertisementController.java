@@ -3,12 +3,12 @@ package ir.aut.secondhand.frontend;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
+import javafx.stage.FileChooser;
+import java.io.File;
 
 import java.io.IOException;
 
@@ -36,6 +36,9 @@ public class AddAdvertisementController {
     private Button backButton;
 
     @FXML
+    private Label messageLabel;
+
+    @FXML
     public void initialize() {
         categoryBox.getItems().addAll(
                 "Electronics",
@@ -51,12 +54,48 @@ public class AddAdvertisementController {
 
     @FXML
     private void chooseImage() {
-        System.out.println("Choose Image clicked");
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Choose Advertisement Image");
+
+        fileChooser.getExtensionFilters().add(
+          new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
+        );
+
+        File selectedFile = fileChooser.showOpenDialog(imagePreview.getScene().getWindow());
+
+        if (selectedFile != null){
+            Image image = new Image(selectedFile.toURI().toString());
+            imagePreview.setImage(image);
+
+            System.out.println("Selected image: " + selectedFile.getAbsolutePath());
+        }
     }
 
     @FXML
     private void submitAdvertisement() {
-        System.out.println("Add Advertisement clicked");
+        String title = titleField.getText();
+        String description = descriptionArea.getText();
+        String price = priceField.getText();
+        String city = cityField.getText();
+        String category = categoryBox.getValue();
+
+        if (title.isBlank() || description.isBlank() || price.isBlank() || city.isBlank() || category == null){
+            messageLabel.setStyle("-fx-text-fill: red; -fx-font-size: 14px; -fx-font-weight: bold;");
+            messageLabel.setText("Please fill in all fields");
+            return;
+        }
+
+        messageLabel.setStyle("-fx-text-fill: green; -fx-font-size: 14px; -fx-font-weight: bold;");
+        messageLabel.setText("Advertisement submitted....Waiting for admin to approve");
+
+
+        titleField.clear();
+        descriptionArea.clear();
+        priceField.clear();
+        cityField.clear();
+        categoryBox.setValue(null);
+        imagePreview.setImage(null);
     }
 
     @FXML

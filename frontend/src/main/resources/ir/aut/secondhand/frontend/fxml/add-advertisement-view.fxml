@@ -55,6 +55,10 @@
                        fitHeight="150"
                        preserveRatio="true"/>
 
+            <Label fx:id="messageLabel"
+                   text=""
+                   style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+
             <HBox spacing="15"
                   alignment="CENTER">
 
