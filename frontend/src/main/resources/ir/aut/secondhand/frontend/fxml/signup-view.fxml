@@ -29,6 +29,17 @@
             <TextField fx:id="usernameField"
                        promptText="Username"/>
 
+            <TextField fx:id="emailField"
+                       promptText="Email"/>
+
+            <HBox spacing="8" alignment="CENTER">
+                <Label text="+98"
+                       style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+                <TextField fx:id="phoneField"
+                           promptText="9123456789"/>
+            </HBox>
+
             <PasswordField fx:id="passwordField"
                            promptText="Password"/>
 

@@ -27,16 +27,37 @@ public class SignUpController {
     private Label messageLabel;
 
     @FXML
+    private TextField emailField;
+
+    @FXML
+    private TextField phoneField;
+
+    @FXML
     private void signUp(){
         String name = nameField.getText();
         String username = usernameField.getText();
         String password = passwordField.getText();
         String confirmPassword = confirmPasswordField.getText();
+        String email = emailField.getText();
+        String phone = phoneField.getText();
 
-        if (name.isBlank() || username.isBlank() || password.isBlank() || confirmPassword.isBlank()){
+        if (name.isBlank() || username.isBlank() || password.isBlank() || confirmPassword.isBlank() || email.isBlank() || phone.isBlank()){
             messageLabel.setText("Please fill in all fields");
             return;
         }
+
+        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            messageLabel.setStyle("-fx-text-fill: red;");
+            messageLabel.setText("Invalid email address.");
+            return;
+        }
+
+        if (!phone.matches("^9\\d{9}$")) {
+            messageLabel.setText("Invalid Iranian phone number. Example: 9123456789");
+            return;
+        }
+
+        String fullPhoneNumber = "+98" + phone;
 
         if (!password.equals(confirmPassword)){
             messageLabel.setText("Passwords do not match");
@@ -50,6 +71,8 @@ public class SignUpController {
         System.out.println("Name: " + name);
         System.out.println("Username: " + username);
         System.out.println("Password: " + password);
+        System.out.println("Email: " + email);
+        System.out.println("Phone: " + fullPhoneNumber);
     }
 
     @FXML
