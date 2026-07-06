@@ -16,6 +16,13 @@ public class LoginResponse {
         this.token = token;
     }
 
+    public LoginResponse(User user, String token) {
+        this.username = user.getUsername();
+        this.fullName = user.getFullName();
+        this.role = user.getRole();
+        this.token = token;
+    }
+
     public String getUsername() {
         return username;
     }
