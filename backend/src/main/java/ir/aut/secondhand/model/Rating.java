@@ -16,7 +16,7 @@ import jakarta.persistence.UniqueConstraint;
 
 @Entity
 @Table(name = "ratings", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"buyer_id", "seller_id"})
+    @UniqueConstraint(columnNames = {"rater_id", "advertisement_id"})
 })
 public class Rating {
 
@@ -29,8 +29,12 @@ public class Rating {
     private User seller;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "buyer_id", nullable = false)
-    private User buyer;
+    @JoinColumn(name = "rater_id", nullable = false)
+    private User rater;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "advertisement_id", nullable = false)
+    private Advertisement advertisement;
 
     @Column(nullable = false)
     private Integer score;
@@ -66,12 +70,20 @@ public class Rating {
         this.seller = seller;
     }
 
-    public User getBuyer() {
-        return buyer;
+    public User getRater() {
+        return rater;
     }
 
-    public void setBuyer(User buyer) {
-        this.buyer = buyer;
+    public void setRater(User rater) {
+        this.rater = rater;
+    }
+
+    public Advertisement getAdvertisement() {
+        return advertisement;
+    }
+
+    public void setAdvertisement(Advertisement advertisement) {
+        this.advertisement = advertisement;
     }
 
     public Integer getScore() {
