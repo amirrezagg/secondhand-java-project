@@ -1,13 +1,15 @@
 package ir.aut.secondhand.service;
 
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import ir.aut.secondhand.dto.RegisterRequest;
-import ir.aut.secondhand.exception.BadCredentialsException;
-import ir.aut.secondhand.exception.EmailAlreadyExistsException;
-import ir.aut.secondhand.exception.PhoneNumberAlreadyExistsException;
-import ir.aut.secondhand.exception.UsernameAlreadyExistsException;
+import ir.aut.secondhand.dto.UpdateUserRequest;
+import ir.aut.secondhand.exception.DuplicateResourceException;
+import ir.aut.secondhand.exception.UserIsNotAuthenticatedException;
 import ir.aut.secondhand.model.User;
 import ir.aut.secondhand.repository.UserRepository;
 import ir.aut.secondhand.util.PhoneNumberValidationUtil;
@@ -27,13 +29,13 @@ public class UserService {
         requestedUser.setPhoneNumber(PhoneNumberValidationUtil.normalizePhoneNumber(requestedUser.getPhoneNumber()));
 
         if (userRepository.existsByUsername(requestedUser.getUsername())) {
-            throw new UsernameAlreadyExistsException();
+            throw new DuplicateResourceException("username");
         }
         if (userRepository.existsByPhoneNumber(requestedUser.getPhoneNumber())) {
-            throw new PhoneNumberAlreadyExistsException();
+            throw new DuplicateResourceException("phone number");
         }
         if (userRepository.existsByEmail(requestedUser.getEmail())) {
-            throw new EmailAlreadyExistsException();
+            throw new DuplicateResourceException("email");
         }
 
         User user = new User();
@@ -50,12 +52,47 @@ public class UserService {
 
     public User login(String username, String password) {
         User user = userRepository.findByUsernameAndIsBlocked(username, false)
-                .orElseThrow(() -> new BadCredentialsException());
+                .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadCredentialsException();
+            throw new BadCredentialsException("Invalid username or password");
         }
 
         return user;
+    }
+
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new UserIsNotAuthenticatedException();
+        }
+
+        String username = authentication.getName();
+
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserIsNotAuthenticatedException());
+    }
+
+    public User updateUserProfile(UpdateUserRequest updatedUser) {
+        User currentUser = getCurrentUser();
+
+        String updatedUserEmail = updatedUser.getEmail();
+        if (updatedUserEmail != null && !updatedUserEmail.isEmpty() && !currentUser.getEmail().equals(updatedUserEmail)) {
+            userRepository.findByEmail(updatedUserEmail).ifPresent(u -> {
+                throw new DuplicateResourceException("email");
+            });
+            currentUser.setEmail(updatedUserEmail);
+        }
+
+        if (updatedUser.getFullName() != null && !updatedUser.getFullName().isEmpty()) {
+            currentUser.setFullName(updatedUser.getFullName());
+        }
+
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+            currentUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        }
+
+        return userRepository.save(currentUser);
     }
 }
