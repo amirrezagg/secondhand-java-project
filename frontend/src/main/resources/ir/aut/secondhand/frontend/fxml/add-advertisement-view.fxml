@@ -47,13 +47,16 @@
             <TextField fx:id="cityField"
                        promptText="City"/>
 
-            <Button text="Choose Image"
-                    onAction="#chooseImage"/>
+            <Button text="Choose Images"
+                    onAction="#chooseImages"/>
 
-            <ImageView fx:id="imagePreview"
-                       fitWidth="200"
-                       fitHeight="150"
-                       preserveRatio="true"/>
+            <Label text="Selected Images"/>
+
+            <TilePane fx:id="imageTilePane"
+                      hgap="10"
+                      vgap="10"
+                      prefColumns="4"
+                      alignment="CENTER"/>
 
             <Label fx:id="messageLabel"
                    text=""
