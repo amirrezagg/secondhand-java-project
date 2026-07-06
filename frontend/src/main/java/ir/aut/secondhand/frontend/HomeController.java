@@ -6,10 +6,20 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import javafx.scene.layout.TilePane;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
+import javafx.geometry.Pos;
+
+import java.net.URL;
+import java.util.ResourceBundle;
 
 import java.io.IOException;
 
-public class HomeController {
+public class HomeController implements Initializable {
 
     @FXML
     private TextField searchField;
@@ -29,6 +39,9 @@ public class HomeController {
     @FXML
     private Button logoutButton;
 
+    @FXML
+    private TilePane advertisementTilePane;
+
 
     @FXML
     private void openMessages() {
@@ -44,6 +57,98 @@ public class HomeController {
     private void openProfile() {
         System.out.println("Open profile clicked");
     }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle){
+        addMockAdvertisements();
+    }
+
+    private void addMockAdvertisements() {
+        advertisementTilePane.getChildren().clear();
+
+        advertisementTilePane.getChildren().add(createAdvertisementCard(
+                "لپ‌تاپ دست دوم",
+                "۴۵ میلیون تومان",
+                "تهران",
+                "لوازم الکترونیکی",
+                "/ir/aut/secondhand/frontend/images/laptop.png"
+        ));
+
+        advertisementTilePane.getChildren().add(createAdvertisementCard(
+                "صندلی اداری",
+                "۸ میلیون تومان",
+                "شیراز",
+                "مبلمان",
+                "/ir/aut/secondhand/frontend/images/chair.png"
+        ));
+
+        advertisementTilePane.getChildren().add(createAdvertisementCard(
+                "آیفون ۱۲",
+                "۵۰ میلیون تومان",
+                "اصفهان",
+                "لوازم الکترونیکی",
+                "/ir/aut/secondhand/frontend/images/iphone.png"
+        ));
+
+        advertisementTilePane.getChildren().add(createAdvertisementCard(
+                "میز چوبی",
+                "۱۲ میلیون تومان",
+                "مشهد",
+                "مبلمان",
+                "/ir/aut/secondhand/frontend/images/table.png"
+        ));
+
+
+    }
+
+    private VBox createAdvertisementCard(
+            String title,
+            String price,
+            String city,
+            String category,
+            String imagePath
+    ) {
+        VBox card = new VBox();
+        card.setSpacing(8);
+        card.setAlignment(Pos.CENTER_RIGHT);
+        card.setPrefWidth(220);
+        card.setStyle(
+                "-fx-background-color: white;" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-border-color: #e5e7eb;" +
+                        "-fx-border-radius: 12;" +
+                        "-fx-padding: 15;"
+        );
+
+        Image image = new Image(
+                getClass().getResource(imagePath).toExternalForm()
+        );
+
+        ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(190);
+        imageView.setFitHeight(120);
+        imageView.setPreserveRatio(false);
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+
+        Label priceLabel = new Label(price);
+        priceLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #1E88E5; -fx-font-weight: bold;");
+
+        Label locationLabel = new Label(city + " • " + category);
+        locationLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6b7280;");
+
+        card.getChildren().addAll(
+                imageView,
+                titleLabel,
+                priceLabel,
+                locationLabel
+        );
+
+        return card;
+    }
+
+
 
     @FXML
     private void logout() throws IOException {

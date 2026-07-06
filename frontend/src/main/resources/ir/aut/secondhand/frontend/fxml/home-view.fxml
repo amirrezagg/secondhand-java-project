@@ -7,6 +7,8 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.TilePane?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
@@ -53,13 +55,23 @@
         </HBox>
     </top>
 
-    <center>
-        <VBox alignment="CENTER" spacing="10">
-            <Label text="Welcome to SecondHand Marketplace"
-                   styleClass="home-title"/>
 
-            <Label text="Advertisement list will be added here."/>
-        </VBox>
+    <center>
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color: transparent;">
+            <content>
+                <TilePane fx:id="advertisementTilePane"
+                          hgap="20"
+                          vgap="20"
+                          prefColumns="4"
+                          alignment="TOP_RIGHT"
+                          style="-fx-padding: 30;"/>
+            </content>
+        </ScrollPane>
     </center>
+
+
+
+
 
 </BorderPane>
