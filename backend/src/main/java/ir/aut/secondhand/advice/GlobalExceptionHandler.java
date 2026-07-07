@@ -6,14 +6,14 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import ir.aut.secondhand.exception.BadCredentialsException;
-import ir.aut.secondhand.exception.EmailAlreadyExistsException;
-import ir.aut.secondhand.exception.PhoneNumberAlreadyExistsException;
-import ir.aut.secondhand.exception.UsernameAlreadyExistsException;
+
+import ir.aut.secondhand.exception.DuplicateResourceException;
+import ir.aut.secondhand.exception.UserIsNotAuthenticatedException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -40,6 +40,25 @@ public class GlobalExceptionHandler {
 
         public Map<String, String> getErrors() {
             return errors;
+        }
+    }
+
+    public static class AuthenticationErrorDetails {
+
+        private final int status;
+        private final String message;
+
+        public AuthenticationErrorDetails(int status, String message) {
+            this.status = status;
+            this.message = message;
+        }
+
+        public int getStatus() {
+            return status;
+        }
+
+        public String getMessage() {
+            return message;
         }
     }
 
@@ -75,10 +94,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDetails);
     }
 
-    @ExceptionHandler(UsernameAlreadyExistsException.class)
-    public ResponseEntity<ValidationErrorDetails> handleUsernameExists(UsernameAlreadyExistsException ex) {
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ValidationErrorDetails> handleResourceExists(DuplicateResourceException ex) {
         Map<String, String> errors = new HashMap<>();
-        errors.put("username", "This username is already taken");
+        errors.put(ex.getField(), ex.getMessage());
 
         ValidationErrorDetails errorDetails = new ValidationErrorDetails(
                 HttpStatus.BAD_REQUEST.value(),
@@ -88,42 +107,34 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDetails);
     }
 
-    @ExceptionHandler(PhoneNumberAlreadyExistsException.class)
-    public ResponseEntity<ValidationErrorDetails> handlePhoneNumberExists(PhoneNumberAlreadyExistsException ex) {
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ValidationErrorDetails> handleIllegalArgument(IllegalArgumentException ex) {
         Map<String, String> errors = new HashMap<>();
-        errors.put("phoneNumber", "This phone number is already registered");
+        errors.put("global", ex.getMessage());
 
         ValidationErrorDetails errorDetails = new ValidationErrorDetails(
                 HttpStatus.BAD_REQUEST.value(),
-                "Registration Failed",
-                errors
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDetails);
-    }
-
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ValidationErrorDetails> handleEmailExists(EmailAlreadyExistsException ex) {
-        Map<String, String> errors = new HashMap<>();
-        errors.put("email", "This email address is already registered");
-
-        ValidationErrorDetails errorDetails = new ValidationErrorDetails(
-                HttpStatus.BAD_REQUEST.value(),
-                "Registration Failed",
+                "Invalid Request Argument",
                 errors
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDetails);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ValidationErrorDetails> handleCredentials(BadCredentialsException ex) {
-        Map<String, String> errors = new HashMap<>();
-        errors.put("credentials", "Invalid username or password");
-
-        ValidationErrorDetails errorDetails = new ValidationErrorDetails(
+    public ResponseEntity<AuthenticationErrorDetails> handleCredentials(BadCredentialsException ex) {
+        AuthenticationErrorDetails errorDetails = new AuthenticationErrorDetails(
                 HttpStatus.UNAUTHORIZED.value(),
-                "Authentication Failed",
-                errors
+                "Invalid username or password"
         );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDetails);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorDetails);
+    }
+
+    @ExceptionHandler(UserIsNotAuthenticatedException.class)
+    public ResponseEntity<AuthenticationErrorDetails> handleAuthentication(UserIsNotAuthenticatedException ex) {
+        AuthenticationErrorDetails errorDetails = new AuthenticationErrorDetails(
+                HttpStatus.UNAUTHORIZED.value(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorDetails);
     }
 }
