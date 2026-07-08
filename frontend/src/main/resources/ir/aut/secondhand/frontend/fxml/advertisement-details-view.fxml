@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ir.aut.secondhand.frontend.AdvertisementDetailsController"
+            styleClass="add-ad-root">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="10"
+              style="-fx-padding: 15; -fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
+            <Button text="Back" onAction="#goBack"/>
+            <Label text="Advertisement Details"
+                   style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+            <VBox spacing="20" style="-fx-padding: 30;" alignment="TOP_CENTER">
+
+                <ImageView fx:id="mainImageView"
+                           fitWidth="420"
+                           fitHeight="260"
+                           preserveRatio="false"/>
+
+                <HBox fx:id="thumbnailBox"
+                      spacing="10"
+                      alignment="CENTER"/>
+
+                <VBox spacing="10" maxWidth="600"
+                      style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-border-color: #e5e7eb; -fx-border-radius: 12;">
+
+                    <Label fx:id="titleLabel"
+                           text="لپ‌تاپ دست دوم"
+                           style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+                    <Label fx:id="priceLabel"
+                           text="۴۵ میلیون تومان"
+                           style="-fx-font-size: 18px; -fx-text-fill: #1E88E5; -fx-font-weight: bold;"/>
+
+                    <Label fx:id="cityCategoryLabel"
+                           text="تهران • لوازم الکترونیکی"
+                           style="-fx-font-size: 14px; -fx-text-fill: #6b7280;"/>
+
+                    <Separator/>
+
+                    <Label text="Description"
+                           style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+                    <Label fx:id="descriptionLabel"
+                           text="این آگهی نمونه برای نمایش صفحه جزئیات آگهی است."
+                           wrapText="true"
+                           style="-fx-font-size: 14px;"/>
+
+                    <Separator/>
+
+                    <Label text="Seller"
+                           style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+                    <Label fx:id="sellerLabel"
+                           text="Seller: کاربر نمونه"/>
+
+                    <Label fx:id="ratingLabel"
+                           text="Rating: 4.5 / 5"/>
+
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Button text="Add to Favorites"
+                                onAction="#addToFavorites"/>
+                        <Button text="Message Seller"
+                                onAction="#messageSeller"/>
+                    </HBox>
+
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>
