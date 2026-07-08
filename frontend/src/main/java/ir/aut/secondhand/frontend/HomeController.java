@@ -13,6 +13,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -145,7 +146,12 @@ public class HomeController implements Initializable {
                 locationLabel
         );
 
+        card.setOnMouseClicked(mouseEvent -> openAdvertisementDetails(title, price, city + " • " + category, "این آگهی نمونه برای نمایش صفحه جزئیات آگهی است. بعداً اطلاعات واقعی از Backend دریافت می‌شود.", imagePath
+        ));
+
         return card;
+
+
     }
 
 
@@ -184,5 +190,31 @@ public class HomeController implements Initializable {
 
         stage.setScene(scene);
         stage.setMaximized(maximized);
+    }
+
+    private void openAdvertisementDetails(String title, String price, String cityCategory, String description, String imagePath) {
+        try{
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/advertisement-details-view.fxml"));
+
+            Parent root = fxmlLoader.load();
+
+            AdvertisementDetailsController controller = fxmlLoader.getController();
+            controller.setAdvertisementDetails(title, price, cityCategory, description, imagePath);
+
+            Stage stage = (Stage) advertisementTilePane.getScene().getWindow();
+
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            boolean maximized = stage.isMaximized();
+
+            Scene scene = new Scene(root, width, height);
+            scene.getStylesheets().add(getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
+
+            stage.setScene(scene);
+            stage.setMaximized(maximized);
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
     }
 }
