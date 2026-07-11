@@ -11,6 +11,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.scene.control.Button;
 
 import java.io.IOException;
 
@@ -21,27 +22,7 @@ public class FavoritesController {
 
     @FXML
     public void initialize() {
-        addMockFavorites();
-    }
-
-    private void addMockFavorites() {
-        favoritesTilePane.getChildren().clear();
-
-        favoritesTilePane.getChildren().add(createFavoriteCard(
-                "آیفون ۱۲",
-                "۵۰ میلیون تومان",
-                "اصفهان",
-                "لوازم الکترونیکی",
-                "/ir/aut/secondhand/frontend/images/iphone.png"
-        ));
-
-        favoritesTilePane.getChildren().add(createFavoriteCard(
-                "صندلی اداری",
-                "۸ میلیون تومان",
-                "شیراز",
-                "مبلمان",
-                "/ir/aut/secondhand/frontend/images/chair.png"
-        ));
+        loadFavorites();
     }
 
     private VBox createFavoriteCard(
@@ -78,7 +59,14 @@ public class FavoritesController {
         Label locationLabel = new Label(city + " • " + category);
         locationLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6b7280;");
 
-        card.getChildren().addAll(imageView, titleLabel, priceLabel, locationLabel);
+        Button removeButton = new Button("Remove from favoritef");
+
+        removeButton.setOnAction(event -> {
+            FavoritesManager.removeFavorite(title);
+            loadFavorites();
+        });
+
+        card.getChildren().addAll(imageView, titleLabel, priceLabel, locationLabel, removeButton);
 
         card.setOnMouseClicked(event -> openAdvertisementDetails(
                 title,
@@ -142,6 +130,14 @@ public class FavoritesController {
         }
         catch (IOException e){
             e.printStackTrace();
+        }
+    }
+
+    private void loadFavorites(){
+        favoritesTilePane.getChildren().clear();
+
+        for (FavoriteAdvertisement advertisement : FavoritesManager.getFavorites()){
+            favoritesTilePane.getChildren().add(createFavoriteCard(advertisement.getTitle(), advertisement.getPrice(), advertisement.getCityCategory(), advertisement.getDescription(), advertisement.getImagePath()));
         }
     }
 }
