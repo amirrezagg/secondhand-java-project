@@ -34,9 +34,21 @@ public class AdvertisementDetailsController {
     private Label ratingLabel;
 
     @FXML
+    private String previousPage = "home";
+
+    @FXML
     private void goBack() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/home-view.fxml"));
+
+            String fxmlPath;
+
+            if (previousPage.equals("favorites")){
+                fxmlPath = "/ir/aut/secondhand/frontend/fxml/favorites-view.fxml";
+            }
+            else{
+                fxmlPath = "/ir/aut/secondhand/frontend/fxml/home-view.fxml";
+            }
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(fxmlPath));
 
             Parent root = fxmlLoader.load();
 
@@ -76,5 +88,10 @@ public class AdvertisementDetailsController {
     @FXML
     private void messageSeller() {
         System.out.println("Message seller clicked");
+    }
+
+    @FXML
+    public void setPreviousPage(String previousPage){
+        this.previousPage = previousPage;
     }
 }

@@ -51,7 +51,30 @@ public class HomeController implements Initializable {
 
     @FXML
     private void openFavorites() {
-        System.out.println("Open Favorites  clicked");
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(
+                    getClass().getResource("/ir/aut/secondhand/frontend/fxml/favorites-view.fxml")
+            );
+
+            Parent root = fxmlLoader.load();
+
+            Stage stage = (Stage) advertisementTilePane.getScene().getWindow();
+
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            boolean maximized = stage.isMaximized();
+
+            Scene scene = new Scene(root, width, height);
+            scene.getStylesheets().add(
+                    getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm()
+            );
+
+            stage.setScene(scene);
+            stage.setMaximized(maximized);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -199,6 +222,7 @@ public class HomeController implements Initializable {
             Parent root = fxmlLoader.load();
 
             AdvertisementDetailsController controller = fxmlLoader.getController();
+            controller.setPreviousPage("home");
             controller.setAdvertisementDetails(title, price, cityCategory, description, imagePath);
 
             Stage stage = (Stage) advertisementTilePane.getScene().getWindow();

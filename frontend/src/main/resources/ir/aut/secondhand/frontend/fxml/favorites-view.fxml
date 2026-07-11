@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ir.aut.secondhand.frontend.FavoritesController"
+            styleClass="add-ad-root">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="10"
+              style="-fx-padding: 15; -fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
+            <Button text="Back"
+                    onAction="#goBack"/>
+
+            <Label text="Favorite Advertisements"
+                   style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color: transparent;">
+            <TilePane fx:id="favoritesTilePane"
+                      hgap="20"
+                      vgap="20"
+                      prefColumns="4"
+                      alignment="TOP_RIGHT"
+                      style="-fx-padding: 30;"/>
+        </ScrollPane>
+    </center>
+
+</BorderPane>
