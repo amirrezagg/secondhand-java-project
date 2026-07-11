@@ -69,11 +69,16 @@
                            text="Rating: 4.5 / 5"/>
 
                     <HBox spacing="10" alignment="CENTER_LEFT">
-                        <Button text="Add to Favorites"
+                        <Button fx:id="addToFavoritesButton"
+                                text="Add to Favorites"
                                 onAction="#addToFavorites"/>
                         <Button text="Message Seller"
                                 onAction="#messageSeller"/>
                     </HBox>
+
+                    <Label fx:id="favoriteMessageLabel"
+                           text=""
+                           wrapText="true"/>
 
                 </VBox>
 

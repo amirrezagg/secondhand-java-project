@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import java.io.IOException;
@@ -34,9 +35,42 @@ public class AdvertisementDetailsController {
     private Label ratingLabel;
 
     @FXML
+    private String previousPage = "home";
+
+    @FXML
+    private String currentTitle;
+
+    @FXML
+    private String currentPrice;
+
+    @FXML
+    private String currentCityCategory;
+
+    @FXML
+    private String currentDescription;
+
+    @FXML
+    private String currentImagePath;
+
+    @FXML
+    private Label favoriteMessageLabel;
+
+    @FXML
+    private Button addToFavoritesButton;
+
+    @FXML
     private void goBack() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/home-view.fxml"));
+
+            String fxmlPath;
+
+            if (previousPage.equals("favorites")){
+                fxmlPath = "/ir/aut/secondhand/frontend/fxml/favorites-view.fxml";
+            }
+            else{
+                fxmlPath = "/ir/aut/secondhand/frontend/fxml/home-view.fxml";
+            }
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(fxmlPath));
 
             Parent root = fxmlLoader.load();
 
@@ -60,6 +94,13 @@ public class AdvertisementDetailsController {
 
     @FXML
     public void setAdvertisementDetails(String title, String price, String cityCategory, String description, String imagePath){
+
+        currentTitle = title;
+        currentPrice = price;
+        currentCityCategory = cityCategory;
+        currentDescription = description;
+        currentImagePath = imagePath;
+
         titleLabel.setText(title);
         priceLabel.setText(price);
         cityCategoryLabel.setText(cityCategory);
@@ -70,11 +111,47 @@ public class AdvertisementDetailsController {
 
     @FXML
     private void addToFavorites() {
-        System.out.println("Add to favorites clicked");
+
+        FavoriteAdvertisement advertisement = new FavoriteAdvertisement(currentTitle, currentPrice, currentCityCategory, currentDescription, currentImagePath);
+
+        boolean alreadyExists = FavoritesManager.getFavorites()
+                .stream()
+                .anyMatch(favorite ->
+                        favorite.getTitle().equals(currentTitle)
+                );
+
+        if (alreadyExists) {
+            favoriteMessageLabel.setStyle(
+                    "-fx-text-fill: #d97706; -fx-font-weight: bold;"
+            );
+            favoriteMessageLabel.setText(
+                    "این آگهی قبلاً به علاقه‌مندی‌ها اضافه شده است."
+            );
+            return;
+        }
+
+        FavoritesManager.addFavorite(advertisement);
+
+        favoriteMessageLabel.setStyle(
+                "-fx-text-fill: green; -fx-font-weight: bold;"
+        );
+        favoriteMessageLabel.setText(
+                "آگهی با موفقیت به علاقه‌مندی‌ها اضافه شد."
+        );
     }
 
     @FXML
     private void messageSeller() {
         System.out.println("Message seller clicked");
+    }
+
+    @FXML
+    public void setPreviousPage(String previousPage){
+        this.previousPage = previousPage;
+
+        if (previousPage.equals("favorites")){
+            addToFavoritesButton.setVisible(false);
+            addToFavoritesButton.setManaged(false);
+        }
     }
 }
