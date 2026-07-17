@@ -1,5 +1,6 @@
 package ir.aut.secondhand.frontend;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -142,7 +143,35 @@ public class AdvertisementDetailsController {
 
     @FXML
     private void messageSeller() {
-        System.out.println("Message seller clicked");
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(
+                    getClass().getResource("/ir/aut/secondhand/frontend/fxml/messages-view.fxml"));
+
+            Parent root = fxmlLoader.load();
+
+            MessagesController controller = fxmlLoader.getController();
+            controller.openConversation("Amirreza");
+
+            Stage stage = (Stage) mainImageView.getScene().getWindow();
+
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            boolean maximized = stage.isMaximized();
+
+            Scene scene = new Scene(root, width, height);
+            scene.getStylesheets().add(
+                    getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
+
+            stage.setScene(scene);
+
+            if (maximized){
+                stage.setMaximized(false);
+                Platform.runLater(() -> stage.setMaximized(true));
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML

@@ -89,3 +89,136 @@
     -fx-background-radius: 12;
     -fx-padding: 10 25 10 25;
 }
+
+.messages-root {
+    -fx-background-color: #eef2f7;
+}
+
+.messages-main-header {
+    -fx-background-color: white;
+    -fx-border-color: #dbe3ec;
+    -fx-border-width: 0 0 1 0;
+}
+
+.messages-page-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2937;
+}
+
+.messages-split-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.messages-split-pane > .split-pane-divider {
+    -fx-background-color: #dbe3ec;
+    -fx-padding: 0 1 0 1;
+}
+
+.conversation-sidebar {
+    -fx-background-color: white;
+}
+
+.sidebar-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2937;
+}
+
+.conversation-search {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: transparent;
+    -fx-padding: 10 14;
+}
+
+.conversation-list {
+    -fx-background-color: white;
+    -fx-border-color: transparent;
+}
+
+.conversation-list .list-cell {
+    -fx-background-color: white;
+    -fx-padding: 14;
+    -fx-font-size: 14px;
+    -fx-border-color: transparent transparent #eef2f7 transparent;
+}
+
+.conversation-list .list-cell:selected {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #1d4ed8;
+}
+
+.chat-pane {
+    -fx-background-color: #f8fafc;
+}
+
+.chat-header {
+    -fx-background-color: white;
+    -fx-border-color: #dbe3ec;
+    -fx-border-width: 0 0 1 0;
+}
+
+.chat-avatar {
+    -fx-background-color: #1e88e5;
+    -fx-background-radius: 50;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 12;
+}
+
+.chat-person-name {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2937;
+}
+
+.chat-person-status {
+    -fx-font-size: 12px;
+    -fx-text-fill: #64748b;
+}
+
+.online-status {
+    -fx-text-fill: #16a34a;
+    -fx-font-weight: bold;
+}
+
+.message-list {
+    -fx-background-color: #eaf2f8;
+    -fx-border-color: transparent;
+}
+
+.message-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 8 16;
+}
+
+.message-composer {
+    -fx-background-color: white;
+    -fx-border-color: #dbe3ec;
+    -fx-border-width: 1 0 0 0;
+}
+
+.message-input {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+    -fx-padding: 11 16;
+}
+
+.send-button {
+    -fx-background-color: #1e88e5;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 20;
+    -fx-padding: 10 18;
+}
+
+.attachment-button {
+    -fx-background-color: #e2e8f0;
+    -fx-background-radius: 50;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
