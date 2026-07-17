@@ -254,8 +254,7 @@ public class MessagesController {
     private void goBack() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(
-                    getClass().getResource("/ir/aut/secondhand/frontend/fxml/home-view.fxml")
-            );
+                    getClass().getResource("/ir/aut/secondhand/frontend/fxml/home-view.fxml"));
 
             Parent root = fxmlLoader.load();
 
@@ -267,8 +266,7 @@ public class MessagesController {
 
             Scene scene = new Scene(root, width, height);
             scene.getStylesheets().add(
-                    getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm()
-            );
+                    getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
 
             stage.setScene(scene);
             stage.setMaximized(maximized);
@@ -300,5 +298,20 @@ public class MessagesController {
         messageListView.scrollTo(messageListView.getItems().size() - 1);
 
         conversationListView.refresh();
+    }
+
+    public void openConversation(String conversationName){
+        if (conversationName == null || conversationName.isBlank()){
+            return;
+        }
+
+        if (!conversationListView.getItems().contains(conversationName)){
+            conversationListView.getItems().add(conversationName);
+
+            conversationMessages.put(conversationName, FXCollections.observableArrayList());
+        }
+
+        conversationListView.getSelectionModel().select(conversationName);
+        conversationListView.scrollTo(conversationName);
     }
 }
