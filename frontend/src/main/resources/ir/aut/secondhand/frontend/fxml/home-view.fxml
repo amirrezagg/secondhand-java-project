@@ -10,49 +10,80 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.TilePane?>
 
+<?import javafx.scene.control.ComboBox?>
 <BorderPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="ir.aut.secondhand.frontend.HomeController"
             styleClass="home-root">
 
     <top>
-        <HBox alignment="CENTER_LEFT"
-              spacing="15"
-              styleClass="home-header">
+        <VBox spacing="12"
+              styleClass="home-top-container">
 
-            <padding>
-                <Insets top="15" right="20" bottom="15" left="20"/>
-            </padding>
+            <!-- ردیف اصلی: لوگو، سرچ و دکمه‌های منو -->
+            <HBox spacing="12"
+                  alignment="CENTER_LEFT"
+                  styleClass="home-main-bar">
 
-            <Label text="SecondHand"
-                   styleClass="home-logo"/>
+                <Label text="SecondHand"
+                       styleClass="home-logo"/>
 
-            <TextField fx:id="searchField"
-                       promptText="Search advertisements..."
-                       HBox.hgrow="ALWAYS"
-                       styleClass="home-search"/>
+                <TextField fx:id="searchField"
+                           promptText="Search advertisements..."
+                           HBox.hgrow="ALWAYS"
+                           styleClass="home-search"/>
 
-            <Button fx:id="addAdvertisementButton"
-                    text="Add Advertisement"
-                    onAction="#addAdvertisement"/>
+                <Button fx:id="addAdvertisementButton"
+                        text="Add Advertisement"
+                        onAction="#addAdvertisement"/>
 
-            <Button fx:id="messagesButton"
-                    text="Messages"
-                    onAction="#openMessages"/>
+                <Button text="Messages"
+                        onAction="#openMessages"/>
 
-            <Button fx:id="favoritesButton"
-                    text="Favorites"
-                    onAction="#openFavorites"/>
+                <Button text="Favorites"
+                        onAction="#openFavorites"/>
 
-            <Button fx:id="profileButton"
-                    text="Profile"
-                    onAction="#openProfile"/>
+                <Button text="Profile"
+                        onAction="#openProfile"/>
 
-            <Button fx:id="logoutButton"
-                    text="Logout"
-                    onAction="#logout"/>
+                <Button text="Logout"
+                        onAction="#logout"/>
+            </HBox>
 
-        </HBox>
+            <!-- ردیف فیلترها -->
+            <HBox spacing="10"
+                  alignment="CENTER_LEFT"
+                  styleClass="home-filter-bar">
+
+                <Label text="Filters:"
+                       styleClass="filter-title"/>
+
+                <ComboBox fx:id="categoryFilterBox"
+                          promptText="Category"
+                          prefWidth="150"/>
+
+                <ComboBox fx:id="cityFilterBox"
+                          promptText="City"
+                          prefWidth="130"/>
+
+                <TextField fx:id="minPriceField"
+                           promptText="Min Price"
+                           prefWidth="130"/>
+
+                <TextField fx:id="maxPriceField"
+                           promptText="Max Price"
+                           prefWidth="130"/>
+
+                <ComboBox fx:id="sortBox"
+                          promptText="Sort By"
+                          prefWidth="150"/>
+
+                <Button text="Clear Filters"
+                        onAction="#clearFilters"
+                        styleClass="clear-filter-button"/>
+            </HBox>
+
+        </VBox>
     </top>
 
 
