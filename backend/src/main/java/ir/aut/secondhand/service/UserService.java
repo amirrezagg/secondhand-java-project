@@ -71,7 +71,7 @@ public class UserService {
         String username = authentication.getName();
 
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserIsNotAuthenticatedException());
+                .orElseThrow(UserIsNotAuthenticatedException::new);
     }
 
     public User updateUserProfile(UpdateUserRequest updatedUser) {

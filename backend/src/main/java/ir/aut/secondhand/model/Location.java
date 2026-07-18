@@ -38,6 +38,10 @@ public class Location {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private List<Location> children;
 
+    private Double latitude;
+
+    private Double longitude;
+
     public enum LocationType {
         STATE,
         CITY,
@@ -47,10 +51,12 @@ public class Location {
     public Location() {
     }
 
-    public Location(String name, LocationType type, Location parent) {
+    public Location(String name, LocationType type, Location parent, Double latitude, Double longitude) {
         this.name = name;
         this.type = type;
         this.parent = parent;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public Long getId() {
@@ -91,5 +97,21 @@ public class Location {
 
     public void setChildren(List<Location> children) {
         this.children = children;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 }
