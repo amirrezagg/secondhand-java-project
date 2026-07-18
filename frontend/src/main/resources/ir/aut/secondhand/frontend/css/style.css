@@ -222,3 +222,43 @@
     -fx-font-size: 18px;
     -fx-font-weight: bold;
 }
+
+.edit-profile-dialog {
+    -fx-background-color: #f8fafc;
+}
+
+.edit-profile-dialog .header-panel {
+    -fx-background-color: #ffffff;
+    -fx-padding: 18;
+}
+
+.edit-profile-dialog .header-panel .label {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2937;
+}
+
+.edit-profile-dialog .text-field {
+    -fx-pref-height: 38px;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #cbd5e1;
+    -fx-background-color: white;
+    -fx-padding: 0 10 0 10;
+}
+
+.edit-profile-dialog .text-field:focused {
+    -fx-border-color: #1976d2;
+    -fx-border-width: 1.5;
+}
+
+.edit-profile-dialog .button {
+    -fx-background-radius: 8;
+    -fx-padding: 8 16 8 16;
+    -fx-font-weight: bold;
+}
+
+.edit-profile-dialog .button-bar .button:default {
+    -fx-background-color: #1976d2;
+    -fx-text-fill: white;
+}
