@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.scene.layout.TilePane;
@@ -17,7 +18,10 @@ import javafx.scene.Parent;
 import javafx.application.Platform;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
+import java.util.List;
+import java.util.Comparator;
 
 import java.io.IOException;
 
@@ -25,6 +29,21 @@ public class HomeController implements Initializable {
 
     @FXML
     private TextField searchField;
+
+    @FXML
+    private ComboBox<String> categoryFilterBox;
+
+    @FXML
+    private ComboBox<String> cityFilterBox;
+
+    @FXML
+    private TextField minPriceField;
+
+    @FXML
+    private TextField maxPriceField;
+
+    @FXML
+    private ComboBox<String> sortBox;
 
     @FXML
     private Button addAdvertisementButton;
@@ -139,56 +158,119 @@ public class HomeController implements Initializable {
         }
     }
 
+    private final List<Advertisement> advertisements = new ArrayList<>();
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle){
         addMockAdvertisements();
+
+        categoryFilterBox.getItems().addAll(
+                "لوازم الکترونیکی",
+                "مبلمان",
+                "پوشاک",
+                "کتاب",
+                "خودرو",
+                "موبایل"
+        );
+
+        cityFilterBox.getItems().addAll(
+                "تهران",
+                "کرج",
+                "مشهد",
+                "اصفهان",
+                "شیراز",
+                "تبریز"
+        );
+
+        sortBox.getItems().addAll(
+                "Newest",
+                "Lowest Price",
+                "Highest Price"
+        );
+
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
+
+        categoryFilterBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
+
+        cityFilterBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
+
+        minPriceField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
+
+        maxPriceField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
+
+        sortBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
     }
 
     private void addMockAdvertisements() {
-        advertisementTilePane.getChildren().clear();
 
-        advertisementTilePane.getChildren().add(createAdvertisementCard(
-                "لپ‌تاپ دست دوم",
-                "۴۵ میلیون تومان",
-                "تهران",
-                "لوازم الکترونیکی",
-                "/ir/aut/secondhand/frontend/images/laptop.png"
-        ));
+        advertisements.clear();
 
-        advertisementTilePane.getChildren().add(createAdvertisementCard(
-                "صندلی اداری",
-                "۸ میلیون تومان",
-                "شیراز",
-                "مبلمان",
-                "/ir/aut/secondhand/frontend/images/chair.png"
-        ));
+        advertisements.add(
+                new Advertisement(
+                        1,
+                        "لپ‌تاپ دست دوم",
+                        "لپ‌تاپ سالم و مناسب کارهای روزمره",
+                        45_000_000L,
+                        "تهران",
+                        "لوازم الکترونیکی",
+                        "/ir/aut/secondhand/frontend/images/laptop.png",
+                        "ACTIVE"
+                )
+        );
 
-        advertisementTilePane.getChildren().add(createAdvertisementCard(
-                "آیفون ۱۲",
-                "۵۰ میلیون تومان",
-                "اصفهان",
-                "لوازم الکترونیکی",
-                "/ir/aut/secondhand/frontend/images/iphone.png"
-        ));
+        advertisements.add(
+                new Advertisement(
+                        2,
+                        "صندلی اداری",
+                        "صندلی اداری راحت و سالم",
+                        8_000_000L,
+                        "کرج",
+                        "مبلمان",
+                        "/ir/aut/secondhand/frontend/images/chair.png",
+                        "ACTIVE"
+                )
+        );
 
-        advertisementTilePane.getChildren().add(createAdvertisementCard(
-                "میز چوبی",
-                "۱۲ میلیون تومان",
-                "مشهد",
-                "مبلمان",
-                "/ir/aut/secondhand/frontend/images/table.png"
-        ));
+        advertisements.add(
+                new Advertisement(
+                        3,
+                        "آیفون ۱۲",
+                        "آیفون ۱۲ سالم با حافظه ۱۲۸ گیگابایت",
+                        50_000_000L,
+                        "اصفهان",
+                        "موبایل",
+                        "/ir/aut/secondhand/frontend/images/iphone.png",
+                        "ACTIVE"
+                )
+        );
 
+        advertisements.add(
+                new Advertisement(
+                        4,
+                        "میز چوبی",
+                        "میز چوبی مناسب پذیرایی",
+                        12_000_000L,
+                        "شیراز",
+                        "مبلمان",
+                        "/ir/aut/secondhand/frontend/images/table.png",
+                        "ACTIVE"
+                )
+        );
 
+        displayAdvertisements(advertisements);
     }
 
-    private VBox createAdvertisementCard(
-            String title,
-            String price,
-            String city,
-            String category,
-            String imagePath
-    ) {
+    private void displayAdvertisements(List<Advertisement> advertisementList){
+
+        advertisementTilePane.getChildren().clear();
+
+        for (Advertisement advertisement: advertisementList){
+            advertisementTilePane.getChildren().add(createAdvertisementCard(advertisement));
+        }
+    }
+
+    private VBox createAdvertisementCard( Advertisement advertisement) {
         VBox card = new VBox();
         card.setSpacing(8);
         card.setAlignment(Pos.CENTER_RIGHT);
@@ -202,7 +284,7 @@ public class HomeController implements Initializable {
         );
 
         Image image = new Image(
-                getClass().getResource(imagePath).toExternalForm()
+                getClass().getResource(advertisement.getImagePath()).toExternalForm()
         );
 
         ImageView imageView = new ImageView(image);
@@ -210,13 +292,13 @@ public class HomeController implements Initializable {
         imageView.setFitHeight(120);
         imageView.setPreserveRatio(false);
 
-        Label titleLabel = new Label(title);
+        Label titleLabel = new Label(advertisement.getTitle());
         titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-        Label priceLabel = new Label(price);
+        Label priceLabel = new Label(String.format("%,d تومان", advertisement.getPrice()));
         priceLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #1E88E5; -fx-font-weight: bold;");
 
-        Label locationLabel = new Label(city + " • " + category);
+        Label locationLabel = new Label(advertisement.getCity() + " • " + advertisement.getCategory());
         locationLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6b7280;");
 
         card.getChildren().addAll(
@@ -226,7 +308,7 @@ public class HomeController implements Initializable {
                 locationLabel
         );
 
-        card.setOnMouseClicked(mouseEvent -> openAdvertisementDetails(title, price, city + " • " + category, "این آگهی نمونه برای نمایش صفحه جزئیات آگهی است. بعداً اطلاعات واقعی از Backend دریافت می‌شود.", imagePath
+        card.setOnMouseClicked(mouseEvent -> openAdvertisementDetails(advertisement.getTitle(), String.format("%,d تومان", advertisement.getPrice()), advertisement.getCity() + " • " + advertisement.getCategory(), "این آگهی نمونه برای نمایش صفحه جزئیات آگهی است. بعداً اطلاعات واقعی از Backend دریافت می‌شود.", advertisement.getImagePath()
         ));
 
         return card;
@@ -297,5 +379,115 @@ public class HomeController implements Initializable {
         catch (IOException e){
             e.printStackTrace();
         }
+    }
+    private void applyFilters() {
+
+        String searchText = searchField
+                .getText()
+                .trim()
+                .toLowerCase();
+
+        String selectedCategory =
+                categoryFilterBox.getValue();
+
+        String selectedCity =
+                cityFilterBox.getValue();
+
+        Long minPrice = null;
+        Long maxPrice = null;
+
+        try {
+            if (!minPriceField.getText().isBlank()) {
+                minPrice = Long.parseLong(
+                        minPriceField.getText().trim()
+                );
+            }
+
+            if (!maxPriceField.getText().isBlank()) {
+                maxPrice = Long.parseLong(
+                        maxPriceField.getText().trim()
+                );
+            }
+
+        } catch (NumberFormatException exception) {
+            return;
+        }
+
+        List<Advertisement> filteredAdvertisements =
+                new ArrayList<>();
+
+        for (Advertisement advertisement : advertisements) {
+
+            boolean matchesSearch =
+                    searchText.isEmpty()
+                            || advertisement.getTitle()
+                            .toLowerCase()
+                            .contains(searchText)
+                            || advertisement.getDescription()
+                            .toLowerCase()
+                            .contains(searchText);
+
+            boolean matchesCategory =
+                    selectedCategory == null
+                            || advertisement.getCategory()
+                            .equals(selectedCategory);
+
+            boolean matchesCity =
+                    selectedCity == null
+                            || advertisement.getCity()
+                            .equals(selectedCity);
+
+            boolean matchesMinPrice =
+                    minPrice == null
+                            || advertisement.getPrice() >= minPrice;
+
+            boolean matchesMaxPrice =
+                    maxPrice == null
+                            || advertisement.getPrice() <= maxPrice;
+
+            if (
+                    matchesSearch
+                            && matchesCategory
+                            && matchesCity
+                            && matchesMinPrice
+                            && matchesMaxPrice
+            ) {
+                filteredAdvertisements.add(advertisement);
+            }
+        }
+
+        if (sortBox.getValue() != null) {
+
+            switch (sortBox.getValue()) {
+
+                case "Lowest Price" -> filteredAdvertisements.sort(
+                        Comparator.comparingLong(Advertisement::getPrice)
+                );
+
+                case "Highest Price" -> filteredAdvertisements.sort(
+                        Comparator.comparingLong(Advertisement::getPrice)
+                                .reversed()
+                );
+
+                case "Newest" -> filteredAdvertisements.sort(
+                        Comparator.comparingLong(Advertisement::getId)
+                                .reversed()
+                );
+            }
+        }
+
+        displayAdvertisements(filteredAdvertisements);
+    }
+
+    @FXML
+    private void clearFilters() {
+        searchField.clear();
+        categoryFilterBox.setValue(null);
+        cityFilterBox.setValue(null);
+        minPriceField.clear();
+        maxPriceField.clear();
+        sortBox.setValue(null);
+
+        displayAdvertisements(advertisements);
     }
 }
