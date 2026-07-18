@@ -28,12 +28,14 @@ public class Category {
     @OneToMany(mappedBy = "category")
     private List<Advertisement> advertisements;
 
+    @Column(name = "validation_schema", columnDefinition = "TEXT")
+    private String validationSchema;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Category parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
-    private List<Category> children;
+    private Boolean selectable = false;
 
     public Category() {
 
@@ -75,11 +77,19 @@ public class Category {
         this.parent = parent;
     }
 
-    public List<Category> getChildren() {
-        return children;
+    public String getValidationSchema() {
+        return validationSchema;
     }
 
-    public void setChildren(List<Category> children) {
-        this.children = children;
+    public void setValidationSchema(String validationSchema) {
+        this.validationSchema = validationSchema;
+    }
+
+    public Boolean isSelectable() {
+        return selectable;
+    }
+
+    public void setSelectable(Boolean selectable) {
+        this.selectable = selectable;
     }
 }

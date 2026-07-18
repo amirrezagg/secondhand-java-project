@@ -1,7 +1,9 @@
 package ir.aut.secondhand.model;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
@@ -15,14 +17,19 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "advertisements")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class Advertisement {
 
     @Id
@@ -35,6 +42,10 @@ public class Advertisement {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "dynamic_attributes")
+    private Map<String, Object> dynamicAttributes = new HashMap<>();
+
     @Embedded
     private Price price;
 
@@ -43,10 +54,7 @@ public class Advertisement {
     private AdvertisementStatus status = AdvertisementStatus.PENDING;
 
     @ElementCollection
-    @CollectionTable(
-            name = "advertisement_admin_comments",
-            joinColumns = @JoinColumn(name = "advertisement_id")
-    )
+    @CollectionTable(name = "advertisement_admin_comments", joinColumns = @JoinColumn(name = "advertisement_id"))
     private List<AdminComment> adminComments;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -74,11 +82,7 @@ public class Advertisement {
     private Long viewCount = 0L;
 
     public enum AdvertisementStatus {
-        PENDING,
-        APPROVED,
-        REJECTED,
-        SOLD,
-        DELETED
+        PENDING, APPROVED, REJECTED, SOLD, DELETED
     }
 
     @PrePersist
@@ -188,5 +192,13 @@ public class Advertisement {
 
     public void setViewCount(Long viewCount) {
         this.viewCount = viewCount;
+    }
+
+    public Map<String, Object> getDynamicAttributes() {
+        return dynamicAttributes;
+    }
+
+    public void setDynamicAttributes(Map<String, Object> dynamicAttributes) {
+        this.dynamicAttributes = dynamicAttributes;
     }
 }
