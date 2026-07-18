@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ir.aut.secondhand.frontend.ProfileController"
+            styleClass="profile-root">
+
+    <top>
+        <HBox alignment="CENTER_LEFT"
+              spacing="12"
+              styleClass="profile-header">
+
+            <padding>
+                <Insets top="14" right="18" bottom="14" left="18"/>
+            </padding>
+
+            <Button text="Back"
+                    onAction="#goBack"/>
+
+            <Label text="Profile"
+                   styleClass="profile-page-title"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true"
+                    styleClass="profile-scroll-pane">
+
+            <VBox spacing="24"
+                  alignment="TOP_CENTER">
+
+                <padding>
+                    <Insets top="25" right="40" bottom="30" left="40"/>
+                </padding>
+
+                <!-- User information -->
+                <VBox spacing="14"
+                      maxWidth="700"
+                      styleClass="profile-card">
+
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+
+                        <Label text="AR"
+                               styleClass="profile-avatar"/>
+
+                        <VBox spacing="4">
+                            <Label fx:id="fullNameLabel"
+                                   text="Amirreza Ghasemi"
+                                   styleClass="profile-name"/>
+
+                            <Label fx:id="usernameLabel"
+                                   text="\@amirreza"
+                                   styleClass="profile-username"/>
+                        </VBox>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Button text="Edit Profile"
+                                onAction="#editProfile"/>
+                    </HBox>
+
+                    <Separator/>
+
+                    <GridPane hgap="20"
+                              vgap="12">
+
+                        <columnConstraints>
+                            <ColumnConstraints minWidth="110"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="Email:"
+                               GridPane.rowIndex="0"
+                               GridPane.columnIndex="0"
+                               styleClass="profile-field-title"/>
+
+                        <Label fx:id="emailLabel"
+                               text="amirreza@example.com"
+                               GridPane.rowIndex="0"
+                               GridPane.columnIndex="1"
+                               styleClass="profile-field-value"/>
+
+                        <Label text="Phone:"
+                               GridPane.rowIndex="1"
+                               GridPane.columnIndex="0"
+                               styleClass="profile-field-title"/>
+
+                        <Label fx:id="phoneLabel"
+                               text="+98 912 345 6789"
+                               GridPane.rowIndex="1"
+                               GridPane.columnIndex="1"
+                               styleClass="profile-field-value"/>
+                    </GridPane>
+                </VBox>
+
+                <!-- My advertisements -->
+                <VBox spacing="14"
+                      maxWidth="1000">
+
+                    <Label text="My Advertisements"
+                           styleClass="profile-section-title"/>
+
+                    <TilePane fx:id="myAdvertisementsTilePane"
+                              hgap="18"
+                              vgap="18"
+                              prefColumns="3"
+                              alignment="TOP_LEFT"/>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

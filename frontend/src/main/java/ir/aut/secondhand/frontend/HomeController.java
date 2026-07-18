@@ -108,7 +108,35 @@ public class HomeController implements Initializable {
 
     @FXML
     private void openProfile() {
-        System.out.println("Open profile clicked");
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(
+                    getClass().getResource("/ir/aut/secondhand/frontend/fxml/profile-view.fxml")
+            );
+
+            Parent root = fxmlLoader.load();
+
+            Stage stage = (Stage) advertisementTilePane.getScene().getWindow();
+
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            boolean maximized = stage.isMaximized();
+
+            Scene scene = new Scene(root, width, height);
+            scene.getStylesheets().add(
+                    getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm()
+            );
+
+            stage.setScene(scene);
+
+            if (maximized){
+                stage.setMaximized(false);
+
+                Platform.runLater(() -> stage.setMaximized(true));
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
