@@ -17,6 +17,7 @@ public class AdvertisementResponse {
     private Long categoryId;
     private Long locationId;
     private Map<String, Object> dynamicAttributes = new HashMap<>();
+    private boolean isFavorited;
 
     public AdvertisementResponse(Advertisement advertisement){
         this.id = advertisement.getId();
@@ -102,5 +103,13 @@ public class AdvertisementResponse {
 
     public void setDynamicAttributes(Map<String, Object> dynamicAttributes) {
         this.dynamicAttributes = dynamicAttributes;
+    }
+
+    public boolean isFavorited() {
+        return isFavorited;
+    }
+
+    public void setFavorited(boolean favorited) {
+        isFavorited = favorited;
     }
 }
