@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ir.aut.secondhand.frontend.AdminAdvertisementReviewController"
+            style="-fx-background-color: #f5f7fa;">
+
+    <top>
+        <HBox alignment="CENTER_LEFT"
+              spacing="15"
+              style="-fx-background-color: white;
+                     -fx-padding: 16 25;
+                     -fx-border-color: #e5e7eb;
+                     -fx-border-width: 0 0 1 0;">
+
+            <Button fx:id="backButton"
+                    text="Back"
+                    onAction="#goBack"/>
+
+            <Label text="Review Advertisement"
+                   style="-fx-font-size: 22px;
+                          -fx-font-weight: bold;"/>
+
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color: transparent;">
+
+            <VBox alignment="TOP_CENTER"
+                  spacing="18"
+                  style="-fx-padding: 30;">
+
+                <VBox spacing="14"
+                      maxWidth="650"
+                      style="-fx-background-color: white;
+                             -fx-padding: 28;
+                             -fx-background-radius: 12;
+                             -fx-border-color: #e5e7eb;
+                             -fx-border-radius: 12;">
+
+                    <ImageView fx:id="advertisementImageView"
+                               fitWidth="400"
+                               fitHeight="230"
+                               preserveRatio="true"/>
+
+                    <Label fx:id="titleLabel"
+                           text="Advertisement title"
+                           style="-fx-font-size: 22px;
+                                  -fx-font-weight: bold;"/>
+
+                    <Label fx:id="priceLabel"
+                           text="Price"/>
+
+                    <Label fx:id="cityLabel"
+                           text="City"/>
+
+                    <Label fx:id="categoryLabel"
+                           text="Category"/>
+
+                    <Label fx:id="sellerLabel"
+                           text="Seller"/>
+
+                    <Separator/>
+
+                    <Label text="Description"
+                           style="-fx-font-weight: bold;"/>
+
+                    <Label fx:id="descriptionLabel"
+                           text="Advertisement description"
+                           wrapText="true"/>
+
+                    <Separator/>
+
+                    <Label text="Rejection reason"/>
+
+                    <TextArea fx:id="rejectionReasonArea"
+                              promptText="Enter a reason when rejecting the advertisement..."
+                              prefRowCount="4"
+                              wrapText="true"/>
+
+                    <Label fx:id="messageLabel"
+                           text=""
+                           wrapText="true"/>
+
+                    <HBox alignment="CENTER"
+                          spacing="15">
+
+                        <Button text="Approve"
+                                onAction="#approveAdvertisement"
+                                style="-fx-background-color: #16a34a;
+                                       -fx-text-fill: white;
+                                       -fx-font-weight: bold;
+                                       -fx-padding: 10 22;"/>
+
+                        <Button text="Reject"
+                                onAction="#rejectAdvertisement"
+                                style="-fx-background-color: #dc2626;
+                                       -fx-text-fill: white;
+                                       -fx-font-weight: bold;
+                                       -fx-padding: 10 22;"/>
+
+                        <Button text="Delete"
+                                onAction="#deleteAdvertisement"
+                                style="-fx-background-color: #7f1d1d;
+               -fx-text-fill: white;
+               -fx-font-weight: bold;
+               -fx-padding: 10 22;"/>
+
+                    </HBox>
+
+                </VBox>
+
+            </VBox>
+
+        </ScrollPane>
+    </center>
+
+</BorderPane>

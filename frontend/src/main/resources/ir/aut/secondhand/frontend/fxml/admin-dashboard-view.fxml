@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ir.aut.secondhand.frontend.AdminDashboardController"
+            styleClass="admin-root">
+
+    <top>
+        <HBox alignment="CENTER_LEFT"
+              spacing="15"
+              styleClass="admin-header">
+
+            <padding>
+                <Insets top="18"
+                        right="25"
+                        bottom="18"
+                        left="25"/>
+            </padding>
+
+            <Label text="Admin Panel"
+                   styleClass="admin-title"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <Button text="Logout"
+                    onAction="#logout"
+                    styleClass="admin-logout-button"/>
+
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="18"
+              styleClass="admin-content">
+
+            <padding>
+                <Insets top="25"
+                        right="35"
+                        bottom="25"
+                        left="35"/>
+            </padding>
+
+            <HBox alignment="CENTER_LEFT">
+                <Label text="Pending Advertisements"
+                       styleClass="admin-section-title"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Label fx:id="pendingCountLabel"
+                       text="0 pending"
+                       styleClass="admin-count-label"/>
+            </HBox>
+
+            <Separator/>
+
+            <HBox alignment="CENTER_LEFT"
+                  spacing="12">
+
+                <Button text="Manage Users"
+                        onAction="#openUsersPage"
+                        styleClass="admin-action-button"/>
+
+                <Button text="Manage Categories"
+                        onAction="#openCategoriesPage"
+                        styleClass="admin-action-button"/>
+
+            </HBox>
+
+            <ScrollPane fitToWidth="true"
+                        VBox.vgrow="ALWAYS"
+                        styleClass="admin-scroll-pane">
+
+                <VBox fx:id="pendingAdvertisementsContainer"
+                      spacing="12"
+                      fillWidth="true"
+                      styleClass="admin-list-container">
+
+                    <padding>
+                        <Insets top="10"
+                                right="10"
+                                bottom="10"
+                                left="10"/>
+                    </padding>
+
+                </VBox>
+
+            </ScrollPane>
+
+            <Label fx:id="messageLabel"
+                   text=""
+                   styleClass="admin-message-label"/>
+
+        </VBox>
+    </center>
+
+</BorderPane>

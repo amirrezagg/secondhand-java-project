@@ -30,7 +30,8 @@
             <PasswordField fx:id="passwordField"
                            promptText="Password"/>
 
-            <Button text="Login"
+            <Button fx:id="loginButton"
+                    text="Login"
                     onAction="#login"
                     maxWidth="Infinity"/>
 
