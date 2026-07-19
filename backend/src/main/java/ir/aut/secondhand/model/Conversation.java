@@ -1,23 +1,11 @@
 package ir.aut.secondhand.model;
 
+import ir.aut.secondhand.model.Conversation;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "conversations", uniqueConstraints = {
@@ -51,6 +39,9 @@ public class Conversation {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private LocalDateTime lastUpdatedAt;
+
     public enum ConversationStatus {
         OPEN, CLOSED, DELETED
     }
@@ -58,6 +49,12 @@ public class Conversation {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.lastUpdatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate(){
+        this.lastUpdatedAt = LocalDateTime.now();
     }
 
     public Conversation() {
