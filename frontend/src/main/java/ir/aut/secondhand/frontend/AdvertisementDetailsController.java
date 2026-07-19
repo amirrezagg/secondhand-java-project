@@ -11,6 +11,8 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AdvertisementDetailsController {
 
@@ -58,6 +60,25 @@ public class AdvertisementDetailsController {
 
     @FXML
     private Button addToFavoritesButton;
+
+    @FXML
+    private Button rateSellerButton;
+
+    @FXML
+    private Label sellerRatingStarsLabel;
+
+    @FXML
+    private Label averageRatingLabel;
+
+    @FXML
+    private Label ratingCountLabel;
+
+    private final List<Integer> sellerRatings = new ArrayList<>(List.of(4,5,4));
+
+    @FXML
+    public void initialize() {
+        updateSellerRatingDisplay();
+    }
 
     @FXML
     private void goBack() {
@@ -183,4 +204,88 @@ public class AdvertisementDetailsController {
             addToFavoritesButton.setManaged(false);
         }
     }
+
+    @FXML
+    public void openRatingPage() throws IOException {
+
+        Stage stage = (Stage)
+                rateSellerButton.getScene().getWindow();
+
+        Scene previousScene = stage.getScene();
+
+        FXMLLoader loader = new FXMLLoader(
+                getClass().getResource(
+                        "/ir/aut/secondhand/frontend/fxml/rating-view.fxml"
+                )
+        );
+
+        Parent root = loader.load();
+
+        RatingController ratingController =
+                loader.getController();
+
+        ratingController.setPreviousScene(previousScene);
+
+        ratingController.setRatingSubmittedListener(
+                rating -> {
+                    sellerRatings.add(rating);
+                    updateSellerRatingDisplay();
+                }
+        );
+
+        Scene ratingScene = new Scene(
+                root,
+                stage.getWidth(),
+                stage.getHeight()
+        );
+
+        ratingScene.getStylesheets().add(
+                getClass().getResource(
+                        "/ir/aut/secondhand/frontend/css/style.css"
+                ).toExternalForm()
+        );
+
+        boolean maximized = stage.isMaximized();
+
+        stage.setScene(ratingScene);
+        stage.setMaximized(maximized);
+    }
+
+    private void updateSellerRatingDisplay() {
+
+        int ratingCount = sellerRatings.size();
+
+        if (ratingCount == 0) {
+
+            sellerRatingStarsLabel.setText("☆☆☆☆☆");
+            averageRatingLabel.setText("0.0");
+            ratingCountLabel.setText("(0 ratings)");
+
+            return;
+        }
+
+        double average = sellerRatings
+                .stream()
+                .mapToInt(Integer::intValue)
+                .average()
+                .orElse(0.0);
+
+        int roundedAverage =
+                (int) Math.round(average);
+
+        String stars =
+                "★".repeat(roundedAverage)
+                        + "☆".repeat(5 - roundedAverage);
+
+        sellerRatingStarsLabel.setText(stars);
+
+        averageRatingLabel.setText(
+                String.format("%.1f", average)
+        );
+
+        ratingCountLabel.setText(
+                "(" + ratingCount + " ratings)"
+        );
+    }
+
 }
