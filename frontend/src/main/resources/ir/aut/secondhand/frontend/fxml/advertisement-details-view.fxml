@@ -65,8 +65,32 @@
                     <Label fx:id="sellerLabel"
                            text="Seller: کاربر نمونه"/>
 
-                    <Label fx:id="ratingLabel"
-                           text="Rating: 4.5 / 5"/>
+                    <VBox spacing="6">
+
+                        <Label text="Seller Rating"
+                               style="-fx-font-size:16px;
+                  -fx-font-weight:bold;"/>
+
+                        <HBox spacing="8"
+                              alignment="CENTER_LEFT">
+
+                            <Label fx:id="sellerRatingStarsLabel"
+                                   text="☆☆☆☆☆"
+                                   style="-fx-font-size:22px;
+                      -fx-text-fill:#f59e0b;"/>
+
+                            <Label fx:id="averageRatingLabel"
+                                   text="0.0"
+                                   style="-fx-font-size:14px;
+                      -fx-font-weight:bold;"/>
+
+                            <Label fx:id="ratingCountLabel"
+                                   text="(0 ratings)"
+                                   style="-fx-font-size:13px;"/>
+
+                        </HBox>
+
+                    </VBox>
 
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Button fx:id="addToFavoritesButton"
@@ -74,6 +98,9 @@
                                 onAction="#addToFavorites"/>
                         <Button text="Message Seller"
                                 onAction="#messageSeller"/>
+                        <Button fx:id="rateSellerButton"
+                                text="Rate Seller"
+                                onAction="#openRatingPage"/>
                     </HBox>
 
                     <Label fx:id="favoriteMessageLabel"

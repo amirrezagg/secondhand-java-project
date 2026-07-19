@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.NodeOrientation?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ir.aut.secondhand.frontend.RatingController"
+            style="-fx-background-color: #f5f7fa;">
+
+    <center>
+        <VBox alignment="CENTER"
+              spacing="18"
+              maxWidth="520"
+              style="-fx-background-color: white;
+                     -fx-background-radius: 14;
+                     -fx-border-color: #e5e7eb;
+                     -fx-border-radius: 14;
+                     -fx-padding: 35;">
+
+            <Label text="Rate Seller"
+                   style="-fx-font-size: 24px;
+                          -fx-font-weight: bold;
+                          -fx-text-fill: #1f2937;"/>
+
+            <Label text="Select your rating"
+                   style="-fx-font-size: 14px;
+                          -fx-text-fill: #64748b;"/>
+
+            <HBox spacing="8"
+                  alignment="CENTER">
+
+                <Button fx:id="star1"
+                        text="☆"
+                        onAction="#selectOneStar"
+                        styleClass="rating-star"/>
+
+                <Button fx:id="star2"
+                        text="☆"
+                        onAction="#selectTwoStars"
+                        styleClass="rating-star"/>
+
+                <Button fx:id="star3"
+                        text="☆"
+                        onAction="#selectThreeStars"
+                        styleClass="rating-star"/>
+
+                <Button fx:id="star4"
+                        text="☆"
+                        onAction="#selectFourStars"
+                        styleClass="rating-star"/>
+
+                <Button fx:id="star5"
+                        text="☆"
+                        onAction="#selectFiveStars"
+                        styleClass="rating-star"/>
+
+            </HBox>
+
+            <TextArea fx:id="commentArea"
+                      promptText="Enter your comment"
+                      prefRowCount="5"
+                      wrapText="true"
+                      maxWidth="430"
+                      nodeOrientation="RIGHT_TO_LEFT"
+                      style="-fx-font-size: 14px;
+                             -fx-background-radius: 8;
+                             -fx-border-radius: 8;"/>
+
+            <Label fx:id="messageLabel"
+                   text=""
+                   style="-fx-font-size: 13px;
+                          -fx-font-weight: bold;"/>
+
+            <HBox spacing="12"
+                  alignment="CENTER">
+
+                <Button text="Submit Rating"
+                        onAction="#submitRating"
+                        style="-fx-background-color: #1976d2;
+                               -fx-text-fill: white;
+                               -fx-font-weight: bold;
+                               -fx-background-radius: 8;
+                               -fx-padding: 10 18;"/>
+
+                <Button fx:id="backButton"
+                        text="Back"
+                        onAction="#goBack"
+                        style="-fx-background-color: #64748b;
+                               -fx-text-fill: white;
+                               -fx-font-weight: bold;
+                               -fx-background-radius: 8;
+                               -fx-padding: 10 18;"/>
+
+            </HBox>
+
+        </VBox>
+    </center>
+
+</BorderPane>
