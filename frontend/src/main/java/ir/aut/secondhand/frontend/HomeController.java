@@ -2,6 +2,8 @@ package ir.aut.secondhand.frontend;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.event.ActionEvent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -319,16 +321,21 @@ public class HomeController implements Initializable {
 
 
     @FXML
-    private void logout() throws IOException {
+    private void logout(ActionEvent event) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/login-view.fxml"));
 
-        Stage stage = (Stage) logoutButton.getScene().getWindow();
+        Parent root = fxmlLoader.load();
+
+        Stage stage = (Stage)
+                ((Node) event.getSource())
+                        .getScene()
+                        .getWindow();
 
         boolean maximized = stage.isMaximized();
         double width = stage.getWidth();
         double height = stage.getHeight();
 
-        Scene scene = new Scene(fxmlLoader.load(), width, height);
+        Scene scene = new Scene(root, stage.getWidth(), stage.getHeight());
 
         scene.getStylesheets().add(getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
 
