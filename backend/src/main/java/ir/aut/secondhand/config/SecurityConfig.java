@@ -33,12 +33,13 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/register", "/api/users/login", "/error").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/advertisements/**").permitAll()
-                .anyRequest().authenticated()
+                        .requestMatchers("/api/users/register", "/api/users/login", "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/advertisements/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
                 );
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
