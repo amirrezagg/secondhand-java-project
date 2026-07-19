@@ -11,6 +11,7 @@ import ir.aut.secondhand.exception.ResourceNotFoundException;
 import ir.aut.secondhand.model.*;
 import ir.aut.secondhand.repository.AdvertisementRepository;
 import ir.aut.secondhand.repository.CategoryRepository;
+import ir.aut.secondhand.repository.FavoriteRepository;
 import ir.aut.secondhand.repository.LocationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,13 +28,20 @@ public class AdvertisementService {
     private final LocationRepository locationRepository;
     private final ImageStorageService imageStorageService;
     private final UserService userService;
+    private final FavoriteRepository favoriteRepository;
 
-    public AdvertisementService(AdvertisementRepository advertisementRepository, CategoryRepository categoryRepository, LocationRepository locationRepository, UserService userService, ImageStorageService imageStorageService) {
+    public AdvertisementService(AdvertisementRepository advertisementRepository,
+                                CategoryRepository categoryRepository,
+                                LocationRepository locationRepository,
+                                UserService userService,
+                                ImageStorageService imageStorageService,
+                                FavoriteRepository favoriteRepository) {
         this.advertisementRepository = advertisementRepository;
         this.categoryRepository = categoryRepository;
         this.locationRepository = locationRepository;
         this.userService = userService;
         this.imageStorageService = imageStorageService;
+        this.favoriteRepository = favoriteRepository;
     }
 
     @Transactional
@@ -169,8 +177,13 @@ public class AdvertisementService {
             throw new ResourceNotFoundException("advertisement");
         }
 
+        AdvertisementResponse response = new AdvertisementResponse(advertisement);
+
+        boolean isFav = favoriteRepository.existsByUserIdAndAdvertisementId(currentUser.getId(), advertisement.getId());
+        response.setFavorited(isFav);
+
         advertisement.setViewCount(advertisement.getViewCount() + 1);
-        return new AdvertisementResponse(advertisement);
+        return response;
     }
 
     @Transactional
