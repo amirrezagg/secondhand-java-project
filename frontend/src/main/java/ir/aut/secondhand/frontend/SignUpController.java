@@ -9,6 +9,8 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.io.IOException;
 import javafx.scene.control.TextInputControl;
+import ir.aut.secondhand.frontend.api.ApiClient;
+import ir.aut.secondhand.frontend.dto.RegisterResponse;
 
 public class SignUpController {
 
@@ -50,6 +52,9 @@ public class SignUpController {
 
     @FXML
     private Label confirmPasswordErrorLabel;
+
+    @FXML
+    private final ApiClient apiClient = new ApiClient();
 
     @FXML
     private void signUp(){
@@ -112,15 +117,92 @@ public class SignUpController {
 
         String fullPhoneNumber = "+98" + phone;
 
-        messageLabel.setStyle("-fx-text-fill: green;");
-        messageLabel.setText("Successful registration");
+        try {
 
-        System.out.println("=== New User Registration ===");
-        System.out.println("Name: " + name);
-        System.out.println("Username: " + username);
-        System.out.println("Password: " + password);
-        System.out.println("Email: " + email);
-        System.out.println("Phone: " + fullPhoneNumber);
+            RegisterResponse registerResponse =
+                    apiClient.register(
+                            username,
+                            password,
+                            name,
+                            fullPhoneNumber,
+                            email
+                    );
+
+            messageLabel.setStyle(
+                    "-fx-text-fill: green;"
+            );
+
+            messageLabel.setText(
+                    "Successful registration"
+            );
+
+            System.out.println(
+                    "Registered user: "
+                            + registerResponse.getUsername()
+            );
+
+        } catch (IOException exception) {
+
+            messageLabel.setStyle(
+                    "-fx-text-fill: red;"
+            );
+
+            String errorMessage =
+                    exception.getMessage();
+
+            if (errorMessage == null
+                    || errorMessage.isBlank()) {
+
+                errorMessage =
+                        "Registration failed.";
+            }
+
+            String lowerMessage =
+                    errorMessage.toLowerCase();
+
+            if (lowerMessage.contains("username")) {
+
+                showError(
+                        usernameField,
+                        usernameErrorLabel,
+                        errorMessage
+                );
+
+            } else if (lowerMessage.contains("email")) {
+
+                showError(
+                        emailField,
+                        emailErrorLabel,
+                        errorMessage
+                );
+
+            } else if (lowerMessage.contains("phone")) {
+
+                showError(
+                        phoneField,
+                        phoneErrorLabel,
+                        errorMessage
+                );
+
+            } else {
+
+                messageLabel.setText(
+                        errorMessage
+                );
+            }
+
+        } catch (InterruptedException exception) {
+
+            Thread.currentThread().interrupt();
+
+            messageLabel.setStyle(
+                    "-fx-text-fill: red;"
+            );
+
+            messageLabel.setText(
+                    "Registration request was interrupted."
+            );
+        }
     }
 
 

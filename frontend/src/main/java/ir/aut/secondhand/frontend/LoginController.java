@@ -11,6 +11,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.io.IOException;
+import ir.aut.secondhand.frontend.api.ApiClient;
+import ir.aut.secondhand.frontend.dto.LoginResponse;
 
 public class LoginController {
     @FXML
@@ -26,40 +28,93 @@ public class LoginController {
     private Button loginButton;
 
     @FXML
-    private void login() throws IOException{
-        String username = usernameField.getText();
+    private final ApiClient apiClient = new ApiClient();
+
+    @FXML
+    private void login() {
+
+        String username = usernameField.getText().trim();
         String password = passwordField.getText();
 
-        if (username.isBlank() || password.isBlank()){
-            messageLabel.setText("Please fill in all fields");
+        if (username.isBlank() || password.isBlank()) {
+
+            messageLabel.setStyle(
+                    "-fx-text-fill: red;"
+            );
+
+            messageLabel.setText(
+                    "Please fill in all fields"
+            );
+
             return;
         }
 
         messageLabel.setText("");
+        loginButton.setDisable(true);
 
-        String role;
+        try {
 
-        if (usernameField.getText().equals("admin")
-                && passwordField.getText().equals("admin123")) {
+            LoginResponse loginResponse =
+                    apiClient.login(username, password);
 
-            role = "ADMIN";
-
-        } else {
-
-            role = "USER";
-        }
-
-        if ("ADMIN".equals(role)) {
-
-            openPage(
-                    "/ir/aut/secondhand/frontend/fxml/admin-dashboard-view.fxml"
+            SessionManager.startSession(
+                    loginResponse.getToken(),
+                    loginResponse.getUsername(),
+                    loginResponse.getFullName(),
+                    loginResponse.getRole()
             );
 
-        } else {
-
-            openPage(
-                    "/ir/aut/secondhand/frontend/fxml/home-view.fxml"
+            System.out.println(
+                    "Logged in user: "
+                            + loginResponse.getUsername()
             );
+
+            System.out.println(
+                    "Role: "
+                            + loginResponse.getRole()
+            );
+
+
+            if ("ADMIN".equalsIgnoreCase(
+                    loginResponse.getRole()
+            )) {
+
+                openPage(
+                        "/ir/aut/secondhand/frontend/fxml/admin-dashboard-view.fxml"
+                );
+
+            } else {
+
+                openPage(
+                        "/ir/aut/secondhand/frontend/fxml/home-view.fxml"
+                );
+            }
+
+        } catch (IOException exception) {
+
+            messageLabel.setStyle(
+                    "-fx-text-fill: red;"
+            );
+
+            messageLabel.setText(
+                    exception.getMessage()
+            );
+
+        } catch (InterruptedException exception) {
+
+            Thread.currentThread().interrupt();
+
+            messageLabel.setStyle(
+                    "-fx-text-fill: red;"
+            );
+
+            messageLabel.setText(
+                    "Login request was interrupted."
+            );
+
+        } finally {
+
+            loginButton.setDisable(false);
         }
     }
 
