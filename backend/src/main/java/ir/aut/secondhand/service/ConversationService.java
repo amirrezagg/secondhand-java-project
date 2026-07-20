@@ -37,6 +37,10 @@ public class ConversationService {
         Advertisement advertisement = advertisementRepository.findById(advertisementId)
                 .orElseThrow(() -> new ResourceNotFoundException("advertisement"));
 
+        if(advertisement.getStatus() != Advertisement.AdvertisementStatus.APPROVED && advertisement.getStatus() != Advertisement.AdvertisementStatus.SOLD ){
+            throw new ResourceNotFoundException("advertisement");
+        }
+
         User seller = advertisement.getSeller();
 
         if (seller.getId().equals(buyer.getId())) {
@@ -64,7 +68,7 @@ public class ConversationService {
 
         Conversation conversation;
 
-        if (conversationId == 0) {
+        if (conversationId == null || conversationId == 0) {
             if (messageRequest.getAdvertisementId() == null) {
                 throw new IllegalArgumentException("Advertisement ID is required to start a new conversation");
             }
@@ -72,13 +76,17 @@ public class ConversationService {
             conversation = getOrCreateConversation(messageRequest.getAdvertisementId(), currentUser);
         } else {
             conversation = conversationRepository.findById(conversationId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("conversation"));
+            Advertisement ad = conversation.getAdvertisement();
 
             boolean isBuyer = conversation.getBuyer().getId().equals(currentUser.getId());
             boolean isSeller = conversation.getSeller().getId().equals(currentUser.getId());
 
             if (!isBuyer && !isSeller) {
                 throw new ResourceNotFoundException("conversation");
+            }
+            if(ad.getStatus() != Advertisement.AdvertisementStatus.APPROVED && ad.getStatus() != Advertisement.AdvertisementStatus.SOLD) {
+                throw new IllegalArgumentException("This advertisement is no longer available for discussion");
             }
         }
 

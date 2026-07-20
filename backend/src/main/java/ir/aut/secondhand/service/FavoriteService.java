@@ -29,7 +29,7 @@ public class FavoriteService {
     }
 
     @Transactional
-    public String toggleFavorite(Long advertisementId) {
+    public boolean toggleFavorite(Long advertisementId) {
 
         User currentUser = userService.getCurrentUser();
 
@@ -37,7 +37,7 @@ public class FavoriteService {
 
         if (alreadyExists) {
             favoriteRepository.deleteByUserIdAndAdvertisementId(currentUser.getId(), advertisementId);
-            return "Removed from favorites";
+            return false;
         }
         else {
             Advertisement advertisement = advertisementRepository.findById(advertisementId)
@@ -55,7 +55,7 @@ public class FavoriteService {
             favorite.setAdvertisement(advertisement);
 
             favoriteRepository.save(favorite);
-            return "Added to favorites";
+            return true;
         }
     }
 

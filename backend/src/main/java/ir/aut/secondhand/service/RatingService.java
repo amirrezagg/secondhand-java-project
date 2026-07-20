@@ -29,11 +29,13 @@ public class RatingService {
 
     public Rating rate(RateUserRequest rateRequest) {
         Advertisement ad = advertisementRepository.findById(rateRequest.getAdvertisementId()).orElseThrow(() -> new IllegalArgumentException("Advertisement not found"));
-        
-        if(ad.getStatus() == Advertisement.AdvertisementStatus.PENDING || ad.getStatus() == Advertisement.AdvertisementStatus.REJECTED){
+
+        if (ad.getStatus() == Advertisement.AdvertisementStatus.PENDING
+                || ad.getStatus() == Advertisement.AdvertisementStatus.REJECTED
+                || ad.getStatus() == Advertisement.AdvertisementStatus.DELETED) {
             throw new ResourceNotFoundException("advertisement");
         }
-        
+
         User seller = ad.getSeller();
         User rater = userService.getCurrentUser();
 

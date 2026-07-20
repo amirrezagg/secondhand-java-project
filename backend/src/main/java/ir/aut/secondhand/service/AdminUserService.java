@@ -37,7 +37,7 @@ public class AdminUserService {
     }
 
     @Transactional
-    public String toggleUserBlockStatus(Long userId) {
+    public boolean toggleUserBlockStatus(Long userId) {
         User admin = userService.getCurrentUser();
 
         if (admin.getId().equals(userId)) {
@@ -50,6 +50,6 @@ public class AdminUserService {
         user.setBlocked(!user.isBlocked());
         userRepository.save(user);
 
-        return user.isBlocked() ? "User has been blocked successfully" : "User has been unblocked successfully";
+        return user.isBlocked();
     }
 }

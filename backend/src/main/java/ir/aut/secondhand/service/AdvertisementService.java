@@ -63,6 +63,7 @@ public class AdvertisementService {
         advertisement.setSeller(seller);
         advertisement.setCategory(category);
         advertisement.setLocation(location);
+        advertisement.setStatus(Advertisement.AdvertisementStatus.PENDING);
 
         if (request.getPriceAmount() != null) {
             Price price = new Price(request.getPriceAmount(), request.getPriceCurrency());
@@ -168,7 +169,11 @@ public class AdvertisementService {
 
         boolean isUserAdvertisement = advertisement.getSeller().getId().equals(currentUser.getId());
         if (currentUser.getRole() == User.Role.ADMIN || isUserAdvertisement) {
-            return new AdvertisementResponse(advertisement);
+            AdvertisementResponse response = new AdvertisementResponse(advertisement);
+            if (advertisement.getAdminComments() != null) {
+                response.setAdminComment(advertisement.getAdminComments());
+            }
+            return response;
         }
 
         boolean isVisibleForPublic = List.of(Advertisement.AdvertisementStatus.APPROVED, Advertisement.AdvertisementStatus.SOLD)
@@ -183,13 +188,21 @@ public class AdvertisementService {
         response.setFavorited(isFav);
 
         advertisement.setViewCount(advertisement.getViewCount() + 1);
+        advertisementRepository.save(advertisement);
+
         return response;
     }
 
     @Transactional
     public void saveAdvertisementImages(Long advertisementId, MultipartFile[] files, int mainImageIndex) {
+        User currentUser = userService.getCurrentUser();
+
         Advertisement advertisement = advertisementRepository.findById(advertisementId)
                 .orElseThrow(() -> new ResourceNotFoundException("advertisement"));
+
+        if(advertisement.getSeller().getId().equals(currentUser.getId())){
+            throw new ResourceNotFoundException("advertisement");
+        }
 
         if (files == null || files.length == 0) {
             AdvertisementImage defaultImage = new AdvertisementImage();
@@ -232,6 +245,8 @@ public class AdvertisementService {
 
         if (advertisement.getStatus() == Advertisement.AdvertisementStatus.DELETED) {
             throw new ResourceNotFoundException("advertisement");
+        } else if (advertisement.getStatus() == Advertisement.AdvertisementStatus.SOLD) {
+            throw new IllegalArgumentException("Cannot update sold advertisement");
         }
 
         if (!isOwner && !isAdmin) {
@@ -270,6 +285,10 @@ public class AdvertisementService {
             if (advertisement.getPrice() != null) {
                 advertisement.setPrice(new Price(advertisement.getPrice().getAmount(), request.getPriceCurrency()));
             }
+        }
+
+        if (!isAdmin) {
+            advertisement.setStatus(Advertisement.AdvertisementStatus.PENDING);
         }
 
         return advertisementRepository.save(advertisement);
@@ -314,12 +333,29 @@ public class AdvertisementService {
             advertisement.setStatus(Advertisement.AdvertisementStatus.APPROVED);
         } else if (request.getStatus() == Advertisement.AdvertisementStatus.REJECTED) {
             advertisement.setStatus(Advertisement.AdvertisementStatus.REJECTED);
+            if (request.getRejectionReason() != null && !request.getRejectionReason().isBlank()) {
+                if (advertisement.getAdminComments() == null) {
+                    advertisement.setAdminComments(new ArrayList<>());
+                }
+
+                AdminComment comment = new AdminComment();
+                comment.setContent(request.getRejectionReason());
+                comment.setActionType(AdminComment.AdminActionType.REJECT);
+                comment.setAdmin(currentUser);
+
+                advertisement.getAdminComments().add(comment);
+            }
         } else {
             throw new IllegalArgumentException("Invalid status for review. Choose APPROVED or REJECTED");
         }
-
         Advertisement updatedAdvertisement = advertisementRepository.save(advertisement);
-        return new AdvertisementResponse(updatedAdvertisement);
+
+        AdvertisementResponse response = new AdvertisementResponse(updatedAdvertisement);
+        if (advertisement.getAdminComments() != null) {
+            response.setAdminComment(advertisement.getAdminComments());
+        }
+
+        return response;
     }
 
     @Transactional
@@ -329,7 +365,7 @@ public class AdvertisementService {
 
         User currentUser = userService.getCurrentUser();
         if (!advertisement.getSeller().getId().equals(currentUser.getId())) {
-            throw new IllegalArgumentException("You do not have permission to change this advertisement status");
+            throw new ResourceNotFoundException("advertisement");
         }
 
         if (advertisement.getStatus() != Advertisement.AdvertisementStatus.APPROVED) {

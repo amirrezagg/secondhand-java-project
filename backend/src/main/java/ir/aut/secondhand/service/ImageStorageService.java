@@ -47,8 +47,13 @@ public class ImageStorageService {
         try {
             String originalFilename = file.getOriginalFilename();
             String extension = "";
-            if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+
+            if ("image/jpeg".equalsIgnoreCase(contentType) || "image/jpg".equalsIgnoreCase(contentType)) {
+                extension = ".jpg";
+            } else if ("image/png".equalsIgnoreCase(contentType)) {
+                extension = ".png";
+            } else {
+                throw new IllegalArgumentException("Invalid image format.");
             }
 
             String uniqueFilename = UUID.randomUUID().toString() + extension;
