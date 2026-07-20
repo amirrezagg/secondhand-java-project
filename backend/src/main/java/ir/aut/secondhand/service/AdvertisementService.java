@@ -199,35 +199,26 @@ public class AdvertisementService {
         Advertisement advertisement = advertisementRepository.findById(advertisementId)
                 .orElseThrow(() -> new ResourceNotFoundException("advertisement"));
 
-        if(advertisement.getSeller().getId().equals(currentUser.getId())){
+        if (!advertisement.getSeller().getId().equals(currentUser.getId())) {
             throw new ResourceNotFoundException("advertisement");
         }
 
-        if (files == null || files.length == 0) {
-            AdvertisementImage defaultImage = new AdvertisementImage();
-            defaultImage.setImageUrl("default-ad.png");
-            defaultImage.setAdvertisement(advertisement);
-            defaultImage.setIsPrimary(true);
+        if (files != null && files.length != 0) {
+            if (mainImageIndex < 0 || mainImageIndex >= files.length) {
+                mainImageIndex = 0;
+            }
 
-            advertisement.getAdvertisementImages().add(defaultImage);
-            advertisementRepository.save(advertisement);
-            return;
-        }
+            for (int i = 0; i < files.length; i++) {
+                MultipartFile file = files[i];
+                String uniqueFilename = imageStorageService.storeFile(file);
 
-        if (mainImageIndex < 0 || mainImageIndex >= files.length) {
-            mainImageIndex = 0;
-        }
+                AdvertisementImage advertisementImage = new AdvertisementImage();
+                advertisementImage.setImageUrl(uniqueFilename);
+                advertisementImage.setAdvertisement(advertisement);
+                advertisementImage.setIsPrimary(i == mainImageIndex);
 
-        for (int i = 0; i < files.length; i++) {
-            MultipartFile file = files[i];
-            String uniqueFilename = imageStorageService.storeFile(file);
-
-            AdvertisementImage advertisementImage = new AdvertisementImage();
-            advertisementImage.setImageUrl(uniqueFilename);
-            advertisementImage.setAdvertisement(advertisement);
-            advertisementImage.setIsPrimary(i == mainImageIndex);
-
-            advertisement.getAdvertisementImages().add(advertisementImage);
+                advertisement.getAdvertisementImages().add(advertisementImage);
+            }
         }
 
         advertisementRepository.save(advertisement);
