@@ -2,6 +2,7 @@ package ir.aut.secondhand.dto;
 
 import ir.aut.secondhand.model.AdminComment;
 import ir.aut.secondhand.model.Advertisement;
+import ir.aut.secondhand.model.AdvertisementImage;
 import ir.aut.secondhand.model.Price;
 
 import java.math.BigDecimal;
@@ -23,6 +24,10 @@ public class AdvertisementResponse {
     private Map<String, Object> dynamicAttributes = new HashMap<>();
     private List<AdminCommentResponse> adminComments = new ArrayList<>();
     private boolean isFavorited;
+    private List<String> imageUrls = new ArrayList<>();
+    private String sellerName;
+    private String sellerUsername;
+    private Long sellerId;
 
     public AdvertisementResponse(Advertisement advertisement) {
         this.id = advertisement.getId();
@@ -34,6 +39,23 @@ public class AdvertisementResponse {
         this.locationId = advertisement.getLocation().getId();
         this.adStatus = advertisement.getStatus();
         this.dynamicAttributes = advertisement.getDynamicAttributes();
+        this.sellerName = advertisement.getSeller().getFullName();
+        this.sellerUsername = advertisement.getSeller().getUsername();
+        this.sellerId = advertisement.getSeller().getId();
+        if (advertisement.getAdvertisementImages() != null && !advertisement.getAdvertisementImages().isEmpty()) {
+            for (AdvertisementImage img : advertisement.getAdvertisementImages()) {
+                String imgUrl = "/api/advertisements/images/" + img.getImageUrl();
+
+                if (Boolean.TRUE.equals(img.getIsPrimary())) {
+                    this.imageUrls.add(0, imgUrl);
+                } else {
+                    this.imageUrls.add(imgUrl);
+                }
+            }
+        } else {
+            String imgUrl = "/api/advertisements/images/default-ad.jpg";
+            this.imageUrls.add(imgUrl);
+        }
     }
 
     public AdvertisementResponse(Long id, String title, String description, BigDecimal priceAmount, Price.Currency priceCurrency, Long categoryId, Long locationId, Map<String, Object> dynamicAttributes) {
@@ -137,5 +159,37 @@ public class AdvertisementResponse {
 
     public void setFavorited(boolean favorited) {
         isFavorited = favorited;
+    }
+
+    public List<String> getImageUrls() {
+        return imageUrls;
+    }
+
+    public void setImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
+    }
+
+    public String getSellerName() {
+        return sellerName;
+    }
+
+    public void setSellerName(String sellerName) {
+        this.sellerName = sellerName;
+    }
+
+    public String getSellerUsername() {
+        return sellerUsername;
+    }
+
+    public void setSellerUsername(String sellerUsername) {
+        this.sellerUsername = sellerUsername;
+    }
+
+    public Long getSellerId() {
+        return sellerId;
+    }
+
+    public void setSellerId(Long sellerId) {
+        this.sellerId = sellerId;
     }
 }
