@@ -118,7 +118,19 @@ public class ConversationService {
 
         for (Conversation conversation : conversations) {
             if (conversation.getStatus() != Conversation.ConversationStatus.DELETED) {
-                responseList.add(new ConversationResponse(conversation, currentUser));
+                ConversationResponse response = new ConversationResponse(conversation, currentUser);
+
+                Optional<Message> messageOpt = messageRepository.findFirstByConversationIdAndStatusNotOrderByCreatedAtDesc(conversation.getId(), Message.MessageStatus.DELETED);
+                String latestMessageContent;
+
+                if (messageOpt.isPresent()) {
+                    latestMessageContent = messageOpt.get().getContent();
+                } else {
+                    latestMessageContent = "";
+                };
+
+                response.setLastMessage(latestMessageContent);
+                responseList.add(response);
             }
         }
 

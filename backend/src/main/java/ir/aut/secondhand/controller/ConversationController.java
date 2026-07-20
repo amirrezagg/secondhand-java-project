@@ -8,7 +8,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/conversations")
@@ -42,8 +44,12 @@ public class ConversationController {
     }
 
     @DeleteMapping("/messages/{messageId}")
-    public ResponseEntity<Void> deleteMessage(@PathVariable Long messageId) {
+    public ResponseEntity<Map<String, Object>> deleteMessage(@PathVariable Long messageId) {
         conversationService.deleteMessage(messageId);
-        return ResponseEntity.noContent().build();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "success");
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -12,8 +12,9 @@ public class ConversationResponse {
     private String advertisementTitle;
     private Long contactId;
     private String contactName;
-    private Conversation.ConversationStatus status;
+    private Conversation.ConversationStatus conversationStatus;
     private LocalDateTime lastUpdatedAt;
+    private String lastMessage;
 
     public ConversationResponse(Conversation conversation, User currentUser) {
         this.id = conversation.getId();
@@ -28,7 +29,7 @@ public class ConversationResponse {
         this.contactId = contact.getId();
         this.contactName = contact.getFullName();
 
-        this.status = conversation.getStatus();
+        this.conversationStatus = conversation.getStatus();
         this.lastUpdatedAt = conversation.getCreatedAt();
     }
 
@@ -72,12 +73,12 @@ public class ConversationResponse {
         this.contactName = contactName;
     }
 
-    public Conversation.ConversationStatus getStatus() {
-        return status;
+    public Conversation.ConversationStatus getConversationStatus() {
+        return conversationStatus;
     }
 
-    public void setStatus(Conversation.ConversationStatus status) {
-        this.status = status;
+    public void setConversationStatus(Conversation.ConversationStatus conversationStatus) {
+        this.conversationStatus = conversationStatus;
     }
 
     public LocalDateTime getLastUpdatedAt() {
@@ -86,5 +87,13 @@ public class ConversationResponse {
 
     public void setLastUpdatedAt(LocalDateTime lastUpdatedAt) {
         this.lastUpdatedAt = lastUpdatedAt;
+    }
+
+    public String getLastMessage() {
+        return lastMessage;
+    }
+
+    public void setLastMessage(String lastMessage) {
+        this.lastMessage = lastMessage;
     }
 }
