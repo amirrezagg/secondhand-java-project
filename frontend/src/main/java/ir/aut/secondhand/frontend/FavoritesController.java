@@ -12,13 +12,19 @@ import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.scene.control.Button;
+import ir.aut.secondhand.frontend.api.ApiClient;
+import ir.aut.secondhand.frontend.dto.FavoriteResponse;
+import ir.aut.secondhand.frontend.dto.AdvertisementResponse;
 
 import java.io.IOException;
+import java.util.List;
 
 public class FavoritesController {
 
     @FXML
     private TilePane favoritesTilePane;
+
+    private final ApiClient apiClient = new ApiClient();
 
     @FXML
     public void initialize() {
@@ -44,7 +50,24 @@ public class FavoritesController {
                         "-fx-padding: 15;"
         );
 
-        Image image = new Image(getClass().getResource(imagePath).toExternalForm());
+        Image image;
+
+        if (imagePath != null
+                && imagePath.startsWith("/api/")) {
+
+            image = new Image(
+                    "http://localhost:8080" + imagePath,
+                    true
+            );
+
+        } else {
+
+            image = new Image(
+                    getClass().getResource(
+                            "/ir/aut/secondhand/frontend/images/default-ad.jpg"
+                    ).toExternalForm()
+            );
+        }
         ImageView imageView = new ImageView(image);
         imageView.setFitWidth(190);
         imageView.setFitHeight(120);
@@ -133,11 +156,57 @@ public class FavoritesController {
         }
     }
 
-    private void loadFavorites(){
+    private void loadFavorites() {
+
         favoritesTilePane.getChildren().clear();
 
-        for (FavoriteAdvertisement advertisement : FavoritesManager.getFavorites()){
-            favoritesTilePane.getChildren().add(createFavoriteCard(advertisement.getTitle(), advertisement.getPrice(), advertisement.getCityCategory(), advertisement.getDescription(), advertisement.getImagePath()));
+        try {
+
+            List<FavoriteResponse> favorites =
+                    apiClient.getFavorites();
+
+            for (FavoriteResponse favorite : favorites) {
+
+                AdvertisementResponse advertisement =
+                        favorite.getAdvertisement();
+
+                String imagePath =
+                        "/images/default-ad.jpg";
+
+                if (advertisement.getImageUrls() != null
+                        && !advertisement.getImageUrls().isEmpty()) {
+
+                    imagePath = advertisement
+                            .getImageUrls()
+                            .get(0);
+                }
+
+                favoritesTilePane.getChildren().add(
+
+                        createFavoriteCard(
+
+                                advertisement.getTitle(),
+
+                                advertisement.getPriceAmount()
+                                        + " "
+                                        + advertisement.getPriceCurrency(),
+
+                                String.valueOf(
+                                        advertisement.getLocationId()
+                                ),
+
+                                String.valueOf(
+                                        advertisement.getCategoryId()
+                                ),
+
+                                imagePath
+                        )
+                );
+            }
+
+        } catch (IOException | InterruptedException exception) {
+
+            exception.printStackTrace();
         }
     }
 }

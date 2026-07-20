@@ -11,7 +11,10 @@ import ir.aut.secondhand.frontend.dto.UserProfileResponse;
 import ir.aut.secondhand.frontend.dto.UpdateUserRequest;
 import ir.aut.secondhand.frontend.dto.AdminUsersPageResponse;
 import ir.aut.secondhand.frontend.dto.AdminUserResponse;
+import ir.aut.secondhand.frontend.dto.FavoriteResponse;
+import com.fasterxml.jackson.core.type.TypeReference;
 
+import java.util.List;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -369,6 +372,90 @@ public class ApiClient {
                         + response.statusCode()
                         + " Body: "
                         + response.body()
+        );
+    }
+
+    public List<FavoriteResponse> getFavorites()
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL + "/favorites"
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() >= 200
+                && response.statusCode() < 300) {
+
+            var root =
+                    objectMapper.readTree(response.body());
+
+            var itemsNode =
+                    root.path("items");
+
+            return objectMapper.readValue(
+                    itemsNode.toString(),
+                    new TypeReference<List<FavoriteResponse>>() {
+                    }
+            );
+        }
+
+        throw new IOException(
+                extractErrorMessage(response.body())
+        );
+    }
+
+    public boolean toggleFavorite(Long advertisementId)
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL
+                                        + "/favorites/"
+                                        + advertisementId
+                                        + "/toggle"
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .POST(
+                        HttpRequest.BodyPublishers.noBody()
+                )
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() >= 200
+                && response.statusCode() < 300) {
+
+            return objectMapper
+                    .readTree(response.body())
+                    .get("isFavorited")
+                    .asBoolean();
+        }
+
+        throw new IOException(
+                extractErrorMessage(response.body())
         );
     }
 
