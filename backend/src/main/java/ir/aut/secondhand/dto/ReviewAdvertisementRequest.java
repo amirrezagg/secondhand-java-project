@@ -6,16 +6,16 @@ import jakarta.validation.constraints.NotNull;
 public class ReviewAdvertisementRequest {
 
     @NotNull(message = "status cannot be null")
-    private AdvertisementStatus status;
+    private AdvertisementStatus adStatus;
 
     private String rejectionReason;
 
-    public AdvertisementStatus getStatus() {
-        return status;
+    public AdvertisementStatus getAdStatus() {
+        return adStatus;
     }
 
-    public void setStatus(AdvertisementStatus status) {
-        this.status = status;
+    public void setAdStatus(AdvertisementStatus adStatus) {
+        this.adStatus = adStatus;
     }
 
     public String getRejectionReason() {

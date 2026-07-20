@@ -5,11 +5,21 @@ import ir.aut.secondhand.model.Advertisement;
 import ir.aut.secondhand.service.AdvertisementService;
 import ir.aut.secondhand.service.ImageStorageService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.MalformedURLException;
+import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +28,7 @@ import java.util.Map;
 @RequestMapping("/api/advertisements")
 public class AdvertisementController {
 
+    private static final Logger log = LoggerFactory.getLogger(AdvertisementController.class);
     private final AdvertisementService advertisementService;
     private final ImageStorageService imageStorageService;
 
@@ -54,14 +65,17 @@ public class AdvertisementController {
     }
 
     @PostMapping("/{id}/images")
-    public ResponseEntity<String> uploadAdvertisementImages(
+    public ResponseEntity<Map<String, Object>> uploadAdvertisementImages(
             @PathVariable Long id,
             @RequestParam(value = "files", required = false) MultipartFile[] files,
             @RequestParam(value = "mainImageIndex", defaultValue = "0") int mainImageIndex) {
 
         advertisementService.saveAdvertisementImages(id, files, mainImageIndex);
 
-        return ResponseEntity.ok("Images uploaded successfully!");
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "success");
+
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
@@ -74,11 +88,11 @@ public class AdvertisementController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteAdvertisement(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deleteAdvertisement(@PathVariable Long id) {
         advertisementService.deleteAdvertisement(id);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Advertisement deleted successfully");
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "success");
 
         return ResponseEntity.ok(response);
     }
@@ -104,5 +118,32 @@ public class AdvertisementController {
 
         List<AdvertisementResponse> results = advertisementService.searchAdvertisements(request);
         return ResponseEntity.ok(results);
+    }
+
+    private final Path rootLocation = Path.of("uploads", "advertisements");
+
+    @GetMapping("/images/{filename:.+}")
+    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
+        try {
+            log.info(rootLocation.toAbsolutePath().toString());
+            Path file = rootLocation.resolve(filename);
+            Resource resource = new UrlResource(file.toUri());
+
+            if (resource.exists() || resource.isReadable()) {
+                String contentType = "image/jpeg";
+                if (filename.toLowerCase().endsWith(".png")) {
+                    contentType = "image/png";
+                }
+
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+        } catch (MalformedURLException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

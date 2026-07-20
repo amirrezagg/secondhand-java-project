@@ -19,7 +19,7 @@ public class AdvertisementResponse {
     private Price.Currency priceCurrency;
     private Long categoryId;
     private Long locationId;
-    private Advertisement.AdvertisementStatus status;
+    private Advertisement.AdvertisementStatus adStatus;
     private Map<String, Object> dynamicAttributes = new HashMap<>();
     private List<AdminCommentResponse> adminComments = new ArrayList<>();
     private boolean isFavorited;
@@ -32,7 +32,7 @@ public class AdvertisementResponse {
         this.priceCurrency = advertisement.getPrice().getCurrency();
         this.categoryId = advertisement.getCategory().getId();
         this.locationId = advertisement.getLocation().getId();
-        this.status = advertisement.getStatus();
+        this.adStatus = advertisement.getStatus();
         this.dynamicAttributes = advertisement.getDynamicAttributes();
     }
 
@@ -115,7 +115,7 @@ public class AdvertisementResponse {
         return adminComments;
     }
 
-    public void setAdminComment(List<AdminComment> comments) {
+    public void setAdminComments(List<AdminComment> comments) {
         if (comments != null) {
             for (AdminComment c : comments) {
                 this.adminComments.add(new AdminCommentResponse(c));
@@ -123,12 +123,12 @@ public class AdvertisementResponse {
         }
     }
 
-    public Advertisement.AdvertisementStatus getStatus() {
-        return status;
+    public Advertisement.AdvertisementStatus getAdStatus() {
+        return adStatus;
     }
 
-    public void setStatus(Advertisement.AdvertisementStatus status) {
-        this.status = status;
+    public void setAdStatus(Advertisement.AdvertisementStatus adStatus) {
+        this.adStatus = adStatus;
     }
 
     public boolean isFavorited() {
