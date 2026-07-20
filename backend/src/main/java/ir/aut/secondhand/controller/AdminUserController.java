@@ -8,6 +8,9 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/admin/users")
 public class AdminUserController {
@@ -26,8 +29,9 @@ public class AdminUserController {
     }
 
     @PostMapping("/{userId}/toggle-block")
-    public ResponseEntity<String> toggleUserBlock(@PathVariable Long userId) {
-        String message = adminUserService.toggleUserBlockStatus(userId);
-        return ResponseEntity.ok(message);
+    public ResponseEntity<Map<String, Object>> toggleUserBlock(@PathVariable("userId") Long userId) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("isBlocked", adminUserService.toggleUserBlockStatus(userId));
+        return ResponseEntity.ok(response);
     }
 }

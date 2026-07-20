@@ -5,7 +5,9 @@ import ir.aut.secondhand.service.FavoriteService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/favorites")
@@ -18,9 +20,10 @@ public class FavoriteController {
     }
 
     @PostMapping("/{advertisementId}/toggle")
-    public ResponseEntity<String> toggleFavorite(@PathVariable Long advertisementId) {
-        String message = favoriteService.toggleFavorite(advertisementId);
-        return ResponseEntity.ok(message);
+    public ResponseEntity<Map<String, Object>> toggleFavorite(@PathVariable Long advertisementId) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("isFavorited", favoriteService.toggleFavorite(advertisementId));
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

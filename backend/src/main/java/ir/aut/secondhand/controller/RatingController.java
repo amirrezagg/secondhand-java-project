@@ -26,7 +26,8 @@ public class RatingController {
     @PostMapping
     public ResponseEntity<?> rateSeller(@Valid @RequestBody RateUserRequest request) {
         ratingService.rate(request);
-        return ResponseEntity.ok().build();
+
+        return ResponseEntity.ok(java.util.Map.of("message", "success"));
     }
 
     @GetMapping("/seller/{sellerId}/average")
