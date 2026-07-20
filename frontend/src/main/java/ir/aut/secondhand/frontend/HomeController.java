@@ -322,6 +322,8 @@ public class HomeController implements Initializable {
 
     @FXML
     private void logout(ActionEvent event) throws IOException {
+        SessionManager.clearSession();
+
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/login-view.fxml"));
 
         Parent root = fxmlLoader.load();
