@@ -21,6 +21,8 @@ import javafx.geometry.Insets;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.control.TextInputDialog;
+import ir.aut.secondhand.frontend.api.ApiClient;
+import ir.aut.secondhand.frontend.dto.UserProfileResponse;
 
 import java.io.IOException;
 
@@ -42,7 +44,12 @@ public class ProfileController {
     private Label phoneLabel;
 
     @FXML
+    private final ApiClient apiClient = new ApiClient();
+
+    @FXML
     public void initialize() {
+        loadProfile();
+
         loadMockAdvertisements();
     }
 
@@ -455,20 +462,118 @@ public class ProfileController {
                         return;
                     }
 
-                    fullNameLabel.setText(fullName);
-                    usernameLabel.setText(username);
-                    emailLabel.setText(email);
-                    phoneLabel.setText("+98 " + phone);
+                    try {
 
-                    resultLabel.setStyle(
-                            "-fx-text-fill: #16a34a;" +
-                                    "-fx-font-size: 13px;" +
-                                    "-fx-font-weight: bold;"
-                    );
+                        UserProfileResponse updatedProfile =
+                                apiClient.updateProfile(
+                                        username,
+                                        fullName,
+                                        "+98" + phone,
+                                        email
+                                );
 
-                    resultLabel.setText(
-                            "Information updated successfully."
-                    );
+                        fullNameLabel.setText(
+                                updatedProfile.getFullName()
+                        );
+
+                        usernameLabel.setText(
+                                updatedProfile.getUsername()
+                        );
+
+                        emailLabel.setText(
+                                updatedProfile.getEmail()
+                        );
+
+                        phoneLabel.setText(
+                                updatedProfile.getPhoneNumber()
+                        );
+
+                        SessionManager.startSession(
+                                SessionManager.getToken(),
+                                updatedProfile.getUsername(),
+                                updatedProfile.getFullName(),
+                                updatedProfile.getRole()
+                        );
+
+                        resultLabel.setStyle(
+                                "-fx-text-fill: #16a34a;" +
+                                        "-fx-font-size: 13px;" +
+                                        "-fx-font-weight: bold;"
+                        );
+
+                        resultLabel.setText(
+                                "Information updated successfully."
+                        );
+
+                    } catch (IOException exception) {
+
+                        String errorMessage =
+                                exception.getMessage();
+
+                        if (errorMessage == null
+                                || errorMessage.isBlank()) {
+
+                            errorMessage =
+                                    "Could not update profile.";
+                        }
+
+                        String lowerMessage =
+                                errorMessage.toLowerCase();
+
+                        if (lowerMessage.contains("username")) {
+
+                            showError(
+                                    usernameErrorLabel,
+                                    errorMessage
+                            );
+
+                        } else if (lowerMessage.contains("email")) {
+
+                            showError(
+                                    emailErrorLabel,
+                                    errorMessage
+                            );
+
+                        } else if (lowerMessage.contains("phone")) {
+
+                            showError(
+                                    phoneErrorLabel,
+                                    errorMessage
+                            );
+
+                        } else {
+
+                            resultLabel.setStyle(
+                                    "-fx-text-fill: #dc2626;" +
+                                            "-fx-font-size: 13px;" +
+                                            "-fx-font-weight: bold;"
+                            );
+
+                            resultLabel.setText(
+                                    errorMessage
+                            );
+                        }
+
+                        event.consume();
+                        return;
+
+                    } catch (InterruptedException exception) {
+
+                        Thread.currentThread().interrupt();
+
+                        resultLabel.setStyle(
+                                "-fx-text-fill: #dc2626;" +
+                                        "-fx-font-size: 13px;" +
+                                        "-fx-font-weight: bold;"
+                        );
+
+                        resultLabel.setText(
+                                "Profile update was interrupted."
+                        );
+
+                        event.consume();
+                        return;
+                    }
 
                     event.consume();
 
@@ -531,6 +636,47 @@ public class ProfileController {
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void loadProfile() {
+
+        try {
+
+            UserProfileResponse profile =
+                    apiClient.getProfile();
+
+            fullNameLabel.setText(
+                    profile.getFullName()
+            );
+
+            usernameLabel.setText(
+                    profile.getUsername()
+            );
+
+            emailLabel.setText(
+                    profile.getEmail()
+            );
+
+            phoneLabel.setText(
+                    profile.getPhoneNumber()
+            );
+
+        } catch (IOException exception) {
+
+            exception.printStackTrace();
+
+            fullNameLabel.setText(
+                    "Could not load profile."
+            );
+
+        } catch (InterruptedException exception) {
+
+            Thread.currentThread().interrupt();
+
+            fullNameLabel.setText(
+                    "Profile request was interrupted."
+            );
         }
     }
 }

@@ -1,10 +1,14 @@
 package ir.aut.secondhand.frontend.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import ir.aut.secondhand.frontend.dto.LoginRequest;
 import ir.aut.secondhand.frontend.dto.LoginResponse;
 import ir.aut.secondhand.frontend.dto.RegisterRequest;
 import ir.aut.secondhand.frontend.dto.RegisterResponse;
+import ir.aut.secondhand.frontend.SessionManager;
+import ir.aut.secondhand.frontend.dto.UserProfileResponse;
+import ir.aut.secondhand.frontend.dto.UpdateUserRequest;
 
 import java.io.IOException;
 import java.net.URI;
@@ -24,6 +28,8 @@ public class ApiClient {
 
         httpClient = HttpClient.newHttpClient();
         objectMapper = new ObjectMapper();
+
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     public LoginResponse login(
@@ -178,5 +184,95 @@ public class ApiClient {
 
             return "Registration failed.";
         }
+    }
+
+    public UserProfileResponse getProfile()
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(
+                        BASE_URL + "/users/profile"
+                ))
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() >= 200
+                && response.statusCode() < 300) {
+
+            return objectMapper.readValue(
+                    response.body(),
+                    UserProfileResponse.class
+            );
+        }
+
+        throw new IOException(
+                extractErrorMessage(response.body())
+        );
+    }
+
+    public UserProfileResponse updateProfile(
+            String username,
+            String fullName,
+            String phoneNumber,
+            String email
+    ) throws IOException, InterruptedException {
+
+        UpdateUserRequest updateUserRequest =
+                new UpdateUserRequest(
+                        username,
+                        fullName,
+                        phoneNumber,
+                        email
+                );
+
+        String requestBody =
+                objectMapper.writeValueAsString(updateUserRequest);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(
+                        BASE_URL + "/users/profile"
+                ))
+                .header(
+                        "Content-Type",
+                        "application/json"
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .PUT(
+                        HttpRequest.BodyPublishers
+                                .ofString(requestBody)
+                )
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() >= 200
+                && response.statusCode() < 300) {
+
+            return objectMapper.readValue(
+                    response.body(),
+                    UserProfileResponse.class
+            );
+        }
+
+        throw new IOException(
+                extractRegisterErrorMessage(response.body())
+        );
     }
 }
