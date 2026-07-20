@@ -77,7 +77,12 @@ mvn javafx:run
 
 *Note: This will compile the desktop interface, hook up the FXML layouts, and launch the standalone GUI application window on your machine.*
 
-## 💾 Image Storage Strategy & Test Accounts
+## 💾 Storage Strategy & Test Accounts
+
+### Automated Data Seeding
+To streamline development and ensure a plug-and-play setup, **all essential initial data and verified test accounts are automatically seeded into the database** on the very first application startup.
+* **Seamless Initialization:** The backend dynamically checks table counts on boot. If the database is clean, the seeding process automatically triggers to prepopulate the system.
+* **Hierarchical Setup: All initial** geographical locations (states and cities) and core marketplace categories (along with their rigorous multi-line JSON validation schemas) are injected while strictly preserving their object-oriented parent-child relationships
 
 ### Image Storage Mechanism
 Product and advertisement images uploaded by users are stored securely on the **Local File System** of the backend server.
