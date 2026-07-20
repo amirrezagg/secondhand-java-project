@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class AdvertisementService {
@@ -171,7 +170,7 @@ public class AdvertisementService {
         if (currentUser.getRole() == User.Role.ADMIN || isUserAdvertisement) {
             AdvertisementResponse response = new AdvertisementResponse(advertisement);
             if (advertisement.getAdminComments() != null) {
-                response.setAdminComment(advertisement.getAdminComments());
+                response.setAdminComments(advertisement.getAdminComments());
             }
             return response;
         }
@@ -329,9 +328,9 @@ public class AdvertisementService {
             throw new ResourceNotFoundException("advertisement");
         }
 
-        if (request.getStatus() == Advertisement.AdvertisementStatus.APPROVED) {
+        if (request.getAdStatus() == Advertisement.AdvertisementStatus.APPROVED) {
             advertisement.setStatus(Advertisement.AdvertisementStatus.APPROVED);
-        } else if (request.getStatus() == Advertisement.AdvertisementStatus.REJECTED) {
+        } else if (request.getAdStatus() == Advertisement.AdvertisementStatus.REJECTED) {
             advertisement.setStatus(Advertisement.AdvertisementStatus.REJECTED);
             if (request.getRejectionReason() != null && !request.getRejectionReason().isBlank()) {
                 if (advertisement.getAdminComments() == null) {
@@ -352,7 +351,7 @@ public class AdvertisementService {
 
         AdvertisementResponse response = new AdvertisementResponse(updatedAdvertisement);
         if (advertisement.getAdminComments() != null) {
-            response.setAdminComment(advertisement.getAdminComments());
+            response.setAdminComments(advertisement.getAdminComments());
         }
 
         return response;

@@ -10,7 +10,7 @@ public class MessageResponse {
     private Long senderId;
     private String senderName;
     private String content;
-    private Message.MessageStatus status;
+    private Message.MessageStatus messageStatus;
     private LocalDateTime createdAt;
 
     public MessageResponse(Message message) {
@@ -18,7 +18,7 @@ public class MessageResponse {
         this.senderId = message.getSender().getId();
         this.senderName = message.getSender().getFullName();
         this.content = message.getContent();
-        this.status = message.getStatus();
+        this.messageStatus = message.getStatus();
         this.createdAt = message.getCreatedAt();
     }
 
@@ -54,12 +54,12 @@ public class MessageResponse {
         this.content = content;
     }
 
-    public Message.MessageStatus getStatus() {
-        return status;
+    public Message.MessageStatus getMessageStatus() {
+        return messageStatus;
     }
 
-    public void setStatus(Message.MessageStatus status) {
-        this.status = status;
+    public void setMessageStatus(Message.MessageStatus messageStatus) {
+        this.messageStatus = messageStatus;
     }
 
     public LocalDateTime getCreatedAt() {
