@@ -2,6 +2,7 @@ package ir.aut.secondhand.dto;
 
 import ir.aut.secondhand.model.Category;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CategoryResponse {
