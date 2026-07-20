@@ -1,10 +1,13 @@
 package ir.aut.secondhand.dto;
 
+import ir.aut.secondhand.model.AdminComment;
 import ir.aut.secondhand.model.Advertisement;
 import ir.aut.secondhand.model.Price;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AdvertisementResponse {
@@ -16,10 +19,12 @@ public class AdvertisementResponse {
     private Price.Currency priceCurrency;
     private Long categoryId;
     private Long locationId;
+    private Advertisement.AdvertisementStatus status;
     private Map<String, Object> dynamicAttributes = new HashMap<>();
+    private List<AdminCommentResponse> adminComments = new ArrayList<>();
     private boolean isFavorited;
 
-    public AdvertisementResponse(Advertisement advertisement){
+    public AdvertisementResponse(Advertisement advertisement) {
         this.id = advertisement.getId();
         this.title = advertisement.getTitle();
         this.description = advertisement.getDescription();
@@ -27,6 +32,7 @@ public class AdvertisementResponse {
         this.priceCurrency = advertisement.getPrice().getCurrency();
         this.categoryId = advertisement.getCategory().getId();
         this.locationId = advertisement.getLocation().getId();
+        this.status = advertisement.getStatus();
         this.dynamicAttributes = advertisement.getDynamicAttributes();
     }
 
@@ -103,6 +109,26 @@ public class AdvertisementResponse {
 
     public void setDynamicAttributes(Map<String, Object> dynamicAttributes) {
         this.dynamicAttributes = dynamicAttributes;
+    }
+
+    public List<AdminCommentResponse> getAdminComments() {
+        return adminComments;
+    }
+
+    public void setAdminComment(List<AdminComment> comments) {
+        if (comments != null) {
+            for (AdminComment c : comments) {
+                this.adminComments.add(new AdminCommentResponse(c));
+            }
+        }
+    }
+
+    public Advertisement.AdvertisementStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(Advertisement.AdvertisementStatus status) {
+        this.status = status;
     }
 
     public boolean isFavorited() {
