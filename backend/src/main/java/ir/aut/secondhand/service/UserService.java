@@ -51,9 +51,12 @@ public class UserService {
     }
 
     public User login(String username, String password) {
-        User user = userRepository.findByUsernameAndIsBlocked(username, false)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
 
+        if(user.isBlocked()){
+            throw new IllegalArgumentException("You have been blocked by admin");
+        }
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new BadCredentialsException("Invalid username or password");
         }
