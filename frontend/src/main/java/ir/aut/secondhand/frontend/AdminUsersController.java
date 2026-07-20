@@ -13,6 +13,9 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import ir.aut.secondhand.frontend.dto.AdminUserResponse;
+import ir.aut.secondhand.frontend.dto.AdminUsersPageResponse;
+import ir.aut.secondhand.frontend.api.ApiClient;
 
 import java.io.IOException;
 
@@ -36,6 +39,8 @@ public class AdminUsersController {
     @FXML
     private Label messageLabel;
 
+    private final ApiClient apiClient = new ApiClient();
+
     private final ObservableList<AdminUser> users =
             FXCollections.observableArrayList();
 
@@ -54,34 +59,10 @@ public class AdminUsersController {
                 new PropertyValueFactory<>("status")
         );
 
-        addMockUsers();
+        loadUsers();
         addActionButtons();
     }
 
-    private void addMockUsers() {
-
-        users.clear();
-
-        users.addAll(
-                new AdminUser(
-                        "ali123",
-                        "ali@example.com",
-                        "Active"
-                ),
-                new AdminUser(
-                        "sara22",
-                        "sara@example.com",
-                        "Blocked"
-                ),
-                new AdminUser(
-                        "reza77",
-                        "reza@example.com",
-                        "Active"
-                )
-        );
-
-        usersTable.setItems(users);
-    }
 
     private void addActionButtons() {
 
@@ -95,30 +76,92 @@ public class AdminUsersController {
                         actionButton.setOnAction(event -> {
 
                             AdminUser user =
-                                    getTableView()
-                                            .getItems()
-                                            .get(getIndex());
+                                    getTableRow().getItem();
 
-                            if ("Active".equals(user.getStatus())) {
-
-                                user.setStatus("Blocked");
-
-                                messageLabel.setText(
-                                        user.getUsername()
-                                                + " blocked successfully."
-                                );
-
-                            } else {
-
-                                user.setStatus("Active");
-
-                                messageLabel.setText(
-                                        user.getUsername()
-                                                + " activated successfully."
-                                );
+                            if (user == null) {
+                                return;
                             }
 
-                            usersTable.refresh();
+                            actionButton.setDisable(true);
+
+                            try {
+
+                                AdminUserResponse response =
+                                        apiClient.toggleUserBlock(
+                                                user.getId()
+                                        );
+
+                                user.setStatus(
+                                        response.isBlocked()
+                                                ? "Blocked"
+                                                : "Active"
+                                );
+
+                                actionButton.setText(
+                                        response.isBlocked()
+                                                ? "Activate"
+                                                : "Block"
+                                );
+
+                                usersTable.refresh();
+
+                                messageLabel.setStyle(
+                                        "-fx-text-fill: #16a34a;"
+                                );
+
+                                messageLabel.setText(
+                                        user.getUsername()
+                                                + (
+                                                response.isBlocked()
+                                                        ? " blocked successfully."
+                                                        : " activated successfully."
+                                        )
+                                );
+
+                            } catch (IOException exception) {
+
+                                exception.printStackTrace();
+
+                                messageLabel.setStyle(
+                                        "-fx-text-fill: #dc2626;"
+                                );
+
+                                messageLabel.setText(
+                                        exception.getMessage() == null
+                                                ? "Failed to update user."
+                                                : exception.getMessage()
+                                );
+
+                            } catch (InterruptedException exception) {
+
+                                Thread.currentThread().interrupt();
+
+                                messageLabel.setStyle(
+                                        "-fx-text-fill: #dc2626;"
+                                );
+
+                                messageLabel.setText(
+                                        "User update was interrupted."
+                                );
+
+                            } finally {
+
+                                AdminUser currentUser =
+                                        getTableRow().getItem();
+
+                                boolean isCurrentAdmin =
+                                        currentUser != null
+                                                && currentUser
+                                                .getUsername()
+                                                .equals(
+                                                        SessionManager
+                                                                .getUsername()
+                                                );
+
+                                actionButton.setDisable(
+                                        isCurrentAdmin
+                                );
+                            }
                         });
                     }
 
@@ -136,13 +179,30 @@ public class AdminUsersController {
                         }
 
                         AdminUser user =
-                                getTableView()
-                                        .getItems()
-                                        .get(getIndex());
+                                getTableRow().getItem();
 
-                        if ("Active".equals(user.getStatus())) {
+                        if (user == null) {
+                            setGraphic(null);
+                            return;
+                        }
+
+                        boolean isCurrentAdmin =
+                                user.getUsername().equals(
+                                        SessionManager.getUsername()
+                                );
+
+                        actionButton.setDisable(
+                                isCurrentAdmin
+                        );
+
+                        if ("Active".equals(
+                                user.getStatus()
+                        )) {
+
                             actionButton.setText("Block");
+
                         } else {
+
                             actionButton.setText("Activate");
                         }
 
@@ -193,6 +253,71 @@ public class AdminUsersController {
 
             messageLabel.setText(
                     "Could not open dashboard."
+            );
+        }
+    }
+    private void loadUsers() {
+
+        try {
+
+            AdminUsersPageResponse response =
+                    apiClient.getAdminUsers(
+                            0,
+                            50
+                    );
+
+            users.clear();
+
+            for (AdminUserResponse userResponse
+                    : response.getContent()) {
+
+                AdminUser user = new AdminUser(
+                        userResponse.getId(),
+                        userResponse.getUsername(),
+                        userResponse.getEmail(),
+                        userResponse.isBlocked()
+                                ? "Blocked"
+                                : "Active"
+                );
+
+                users.add(user);
+            }
+
+            usersTable.setItems(users);
+
+            messageLabel.setStyle(
+                    "-fx-text-fill: #16a34a;"
+            );
+
+            messageLabel.setText(
+                    response.getTotalElements()
+                            + " users loaded."
+            );
+
+        } catch (IOException exception) {
+
+            exception.printStackTrace();
+
+            messageLabel.setStyle(
+                    "-fx-text-fill: #dc2626;"
+            );
+
+            messageLabel.setText(
+                    exception.getMessage() == null
+                            ? "Could not load users."
+                            : exception.getMessage()
+            );
+
+        } catch (InterruptedException exception) {
+
+            Thread.currentThread().interrupt();
+
+            messageLabel.setStyle(
+                    "-fx-text-fill: #dc2626;"
+            );
+
+            messageLabel.setText(
+                    "User request was interrupted."
             );
         }
     }

@@ -2,18 +2,25 @@ package ir.aut.secondhand.frontend;
 
 public class AdminUser {
 
+    private final Long id;
     private final String username;
     private final String email;
     private String status;
 
     public AdminUser(
+            Long id,
             String username,
             String email,
             String status
     ) {
+        this.id = id;
         this.username = username;
         this.email = email;
         this.status = status;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public String getUsername() {

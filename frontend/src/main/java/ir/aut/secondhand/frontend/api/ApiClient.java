@@ -9,6 +9,8 @@ import ir.aut.secondhand.frontend.dto.RegisterResponse;
 import ir.aut.secondhand.frontend.SessionManager;
 import ir.aut.secondhand.frontend.dto.UserProfileResponse;
 import ir.aut.secondhand.frontend.dto.UpdateUserRequest;
+import ir.aut.secondhand.frontend.dto.AdminUsersPageResponse;
+import ir.aut.secondhand.frontend.dto.AdminUserResponse;
 
 import java.io.IOException;
 import java.net.URI;
@@ -275,4 +277,99 @@ public class ApiClient {
                 extractRegisterErrorMessage(response.body())
         );
     }
+
+    public AdminUsersPageResponse getAdminUsers(
+            int page,
+            int size
+    ) throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL
+                                        + "/admin/users?page="
+                                        + page
+                                        + "&size="
+                                        + size
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() >= 200
+                && response.statusCode() < 300) {
+
+            return objectMapper.readValue(
+                    response.body(),
+                    AdminUsersPageResponse.class
+            );
+        }
+
+        throw new IOException(
+                extractErrorMessage(response.body())
+        );
+    }
+
+    public AdminUserResponse toggleUserBlock(
+            Long userId
+    ) throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL
+                                        + "/admin/users/"
+                                        + userId
+                                        + "/toggle-block"
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .POST(
+                        HttpRequest.BodyPublishers.noBody()
+                )
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() >= 200
+                && response.statusCode() < 300) {
+
+            AdminUserResponse result =
+                    new AdminUserResponse();
+
+            boolean blocked =
+                    objectMapper.readTree(response.body())
+                            .path("isBlocked")
+                            .asBoolean();
+
+            result.setBlocked(blocked);
+
+            return result;
+        }
+
+        throw new IOException(
+                "Could not update user. Status: "
+                        + response.statusCode()
+                        + " Body: "
+                        + response.body()
+        );
+    }
+
 }
