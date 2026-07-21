@@ -74,7 +74,7 @@ public class UserService {
      * @param username the username provided during login
      * @param password the raw password provided during login
      * @return the authenticated {@link User} entity if credentials are valid
-     * @throws BadCredentialsException if the username or password is incorrect
+     * @throws BadCredentialsException  if the username or password is incorrect
      * @throws IllegalArgumentException if the user account is blocked
      */
     public User login(String username, String password) {
@@ -82,7 +82,7 @@ public class UserService {
                 .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
 
         // Prevent blocked users from accessing the system
-        if(user.isBlocked()){
+        if (user.isBlocked()) {
             throw new IllegalArgumentException("You have been blocked by admin");
         }
         // Verify password matches the stored encoded version
@@ -139,14 +139,10 @@ public class UserService {
             currentUser.setFullName(updatedUser.getFullName());
         }
 
-<<<<<<< Updated upstream
         if (updatedUser.getPhoneNumber() != null && !updatedUser.getPhoneNumber().isEmpty()) {
             currentUser.setPhoneNumber(PhoneNumberValidationUtil.normalizePhoneNumber(updatedUser.getPhoneNumber()));
         }
 
-=======
-        // Update password if provided (re-encoded for security)
->>>>>>> Stashed changes
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
             currentUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
