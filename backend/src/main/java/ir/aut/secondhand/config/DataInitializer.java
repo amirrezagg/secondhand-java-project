@@ -53,7 +53,7 @@ public class DataInitializer implements CommandLineRunner {
         admin.setFullName("System Administrator");
         admin.setUsername("admin");
         admin.setPassword(passwordEncoder.encode("admintest123"));
-        admin.setPhoneNumber("09120000001");
+        admin.setPhoneNumber("+989120000001");
         admin.setEmail("admin@test.com");
         admin.setRole(User.Role.ADMIN);
         admin.setBlocked(false);
@@ -62,7 +62,7 @@ public class DataInitializer implements CommandLineRunner {
         user.setFullName("Test Student");
         user.setUsername("user_test");
         user.setPassword(passwordEncoder.encode("usertest123"));
-        user.setPhoneNumber("09120000002");
+        user.setPhoneNumber("+989120000002");
         user.setEmail("user@test.com");
         user.setRole(User.Role.USER);
         user.setBlocked(false);
