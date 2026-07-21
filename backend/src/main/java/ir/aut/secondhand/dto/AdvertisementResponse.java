@@ -46,10 +46,13 @@ public class AdvertisementResponse {
         this.sellerId = advertisement.getSeller().getId();
         this.categoryName = advertisement.getCategory().getName();
         this.locationName = advertisement.getLocation().getName();
+        // Preserve the advertisement image collection order while ensuring the designated primary image is returned first.
+        // If no images are provided, use a default placeholder image for the response.
         if (advertisement.getAdvertisementImages() != null && !advertisement.getAdvertisementImages().isEmpty()) {
             for (AdvertisementImage img : advertisement.getAdvertisementImages()) {
                 String imgUrl = "/api/advertisements/images/" + img.getImageUrl();
 
+                // Primary image gets inserted at the beginning of the list for display priority.
                 if (Boolean.TRUE.equals(img.getIsPrimary())) {
                     this.imageUrls.add(0, imgUrl);
                 } else {
@@ -57,6 +60,7 @@ public class AdvertisementResponse {
                 }
             }
         } else {
+            // Provide a generic default image when the advertisement has no associated images.
             String imgUrl = "/api/advertisements/images/default-ad.jpg";
             this.imageUrls.add(imgUrl);
         }

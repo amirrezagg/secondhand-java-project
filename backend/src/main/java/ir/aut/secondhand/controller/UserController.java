@@ -18,6 +18,10 @@ import ir.aut.secondhand.security.JwtUtil;
 import ir.aut.secondhand.service.UserService;
 import jakarta.validation.Valid;
 
+/**
+ * REST controller for user account management and authentication endpoints.
+ * Handles registration, login, profile retrieval, and profile update flows.
+ */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -30,12 +34,20 @@ public class UserController {
         this.jwtUtil = jwtUtil;
     }
 
+    /**
+     * Register a new user, then return the created profile representation.
+     * This ensures the response exposes only profile-safe fields.
+     */
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest user) {
         User registeredUser = userService.register(user);
         return ResponseEntity.ok(new UserProfileResponse(registeredUser));
     }
 
+    /**
+     * Authenticate a user and issue a JWT for subsequent requests.
+     * Delegates credential validation to the service layer.
+     */
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
         User user = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
@@ -43,12 +55,20 @@ public class UserController {
         return ResponseEntity.ok(new LoginResponse(user, token));
     }
 
+    /**
+     * Retrieve the current authenticated user's profile.
+     * The service resolves the user from the active security context.
+     */
     @GetMapping("/profile")
     public ResponseEntity<UserProfileResponse> getProfile() {
         User currentUser = userService.getCurrentUser();
         return ResponseEntity.ok(new UserProfileResponse(currentUser));
     }
 
+    /**
+     * Apply profile updates for the authenticated user and return the updated profile.
+     * Requests are validated before forwarding to the service layer.
+     */
     @PutMapping("/profile")
     public ResponseEntity<UserProfileResponse> updateProfile(@Valid @RequestBody UpdateUserRequest request) {
         User updatedUser = userService.updateUserProfile(request);

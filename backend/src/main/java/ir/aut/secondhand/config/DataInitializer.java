@@ -1,17 +1,24 @@
 package ir.aut.secondhand.config;
 
+import java.util.List;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
 import ir.aut.secondhand.model.Category;
 import ir.aut.secondhand.model.Location;
 import ir.aut.secondhand.model.User;
 import ir.aut.secondhand.repository.CategoryRepository;
 import ir.aut.secondhand.repository.LocationRepository;
 import ir.aut.secondhand.repository.UserRepository;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
-import java.util.List;
-
+/**
+ * Initializes application seed data for users, categories, and locations during startup.
+ * Ensures baseline domain entities exist so that the secondhand marketplace has
+ * valid administrative access, location hierarchy, and category structure before
+ * the application becomes available.
+ */
 @Component
 public class DataInitializer implements CommandLineRunner {
 
@@ -53,7 +60,7 @@ public class DataInitializer implements CommandLineRunner {
         admin.setFullName("System Administrator");
         admin.setUsername("admin");
         admin.setPassword(passwordEncoder.encode("admintest123"));
-        admin.setPhoneNumber("09120000001");
+        admin.setPhoneNumber("+989120000001");
         admin.setEmail("admin@test.com");
         admin.setRole(User.Role.ADMIN);
         admin.setBlocked(false);
@@ -62,7 +69,7 @@ public class DataInitializer implements CommandLineRunner {
         user.setFullName("Test Student");
         user.setUsername("user_test");
         user.setPassword(passwordEncoder.encode("usertest123"));
-        user.setPhoneNumber("09120000002");
+        user.setPhoneNumber("+989120000002");
         user.setEmail("user@test.com");
         user.setRole(User.Role.USER);
         user.setBlocked(false);
