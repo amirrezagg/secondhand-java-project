@@ -1,6 +1,9 @@
 package ir.aut.secondhand.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.MethodParameter;
@@ -12,10 +15,14 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Intercepts controller responses and ensures consistent JSON structure for REST output.
+ *
+ * Adapts collection responses, plain string responses, and object responses so that all
+ * successful payloads include a status indicator and a predictable envelope.
+ */
 @ControllerAdvice
 public class GlobalResponseWrapper implements ResponseBodyAdvice<Object> {
 
