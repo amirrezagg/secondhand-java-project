@@ -23,6 +23,11 @@ import javafx.scene.layout.Priority;
 import javafx.scene.control.TextInputDialog;
 import ir.aut.secondhand.frontend.api.ApiClient;
 import ir.aut.secondhand.frontend.dto.UserProfileResponse;
+import ir.aut.secondhand.frontend.dto.AdvertisementResponse;
+import java.util.List;
+import java.net.URL;
+import javafx.concurrent.Task;
+import javafx.scene.control.Alert;
 
 import java.io.IOException;
 
@@ -43,199 +48,227 @@ public class ProfileController {
     @FXML
     private Label phoneLabel;
 
-    @FXML
     private final ApiClient apiClient = new ApiClient();
 
     @FXML
     public void initialize() {
         loadProfile();
 
-        loadMockAdvertisements();
+        loadMyAdvertisements();
     }
 
-    private void loadMockAdvertisements() {
+    private void loadMyAdvertisements() {
 
-        myAdvertisementsTilePane.getChildren().clear();
+        myAdvertisementsTilePane
+                .getChildren()
+                .clear();
 
-        myAdvertisementsTilePane.getChildren().add(
-                createAdvertisementCard(
-                        "لپ‌تاپ دست دوم",
-                        "۴۵ میلیون تومان",
-                        "Pending",
-                        "/ir/aut/secondhand/frontend/images/laptop.png"
-                )
-        );
+        Task<List<AdvertisementResponse>> task =
+                new Task<>() {
 
-        myAdvertisementsTilePane.getChildren().add(
-                createAdvertisementCard(
-                        "صندلی اداری",
-                        "۸ میلیون تومان",
-                        "Active",
-                        "/ir/aut/secondhand/frontend/images/chair.png"
-                )
-        );
+                    @Override
+                    protected List<AdvertisementResponse> call()
+                            throws Exception {
 
-        myAdvertisementsTilePane.getChildren().add(
-                createAdvertisementCard(
-                        "آیفون ۱۲",
-                        "۵۰ میلیون تومان",
-                        "Rejected",
-                        "/ir/aut/secondhand/frontend/images/iphone.png"
-                )
-        );
+                        return apiClient.getMyAdvertisements();
+                    }
+                };
 
-        myAdvertisementsTilePane.getChildren().add(
-                createAdvertisementCard(
-                        "میز چوبی",
-                        "۱۲ میلیون تومان",
-                        "Sold",
-                        "/ir/aut/secondhand/frontend/images/table.png"
-                )
-        );
+        task.setOnSucceeded(event -> {
+
+            myAdvertisementsTilePane
+                    .getChildren()
+                    .clear();
+
+            List<AdvertisementResponse> advertisements =
+                    task.getValue();
+
+            if (advertisements == null
+                    || advertisements.isEmpty()) {
+
+                Label emptyLabel =
+                        new Label("You have no advertisements.");
+
+                emptyLabel.setStyle(
+                        "-fx-font-size: 15px;"
+                                + "-fx-text-fill: #6b7280;"
+                );
+
+                myAdvertisementsTilePane
+                        .getChildren()
+                        .add(emptyLabel);
+
+                return;
+            }
+
+            for (AdvertisementResponse advertisement
+                    : advertisements) {
+
+                myAdvertisementsTilePane
+                        .getChildren()
+                        .add(
+                                createAdvertisementCard(
+                                        advertisement
+                                )
+                        );
+            }
+        });
+
+        task.setOnFailed(event -> {
+
+            task.getException().printStackTrace();
+
+            myAdvertisementsTilePane
+                    .getChildren()
+                    .clear();
+
+            Label errorLabel =
+                    new Label(
+                            "Could not load your advertisements."
+                    );
+
+            errorLabel.setStyle(
+                    "-fx-text-fill: #dc2626;"
+                            + "-fx-font-weight: bold;"
+            );
+
+            myAdvertisementsTilePane
+                    .getChildren()
+                    .add(errorLabel);
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private VBox createAdvertisementCard(
-            String title,
-            String price,
-            String status,
-            String imagePath
+            AdvertisementResponse advertisement
     ) {
 
         VBox card = new VBox(8);
+
         card.setAlignment(Pos.CENTER_RIGHT);
         card.setPrefWidth(220);
 
         card.setStyle(
-                "-fx-background-color: white;" +
-                        "-fx-background-radius: 12;" +
-                        "-fx-border-color: #e5e7eb;" +
-                        "-fx-border-radius: 12;" +
-                        "-fx-padding: 14;"
+                "-fx-background-color: white;"
+                        + "-fx-background-radius: 12;"
+                        + "-fx-border-color: #e5e7eb;"
+                        + "-fx-border-radius: 12;"
+                        + "-fx-padding: 14;"
         );
 
-        Image image = new Image(
-                getClass().getResource(imagePath).toExternalForm()
-        );
+        String imagePath =
+                "/ir/aut/secondhand/frontend/images/laptop.png";
 
-        ImageView imageView = new ImageView(image);
+        if (advertisement.getImageUrls() != null
+                && !advertisement.getImageUrls().isEmpty()) {
+
+            imagePath =
+                    advertisement.getImageUrls().get(0);
+
+            if (imagePath.startsWith("/")) {
+
+                imagePath =
+                        "http://localhost:8080"
+                                + imagePath;
+            }
+        }
+
+        Image image = loadAdvertisementImage(imagePath);
+
+        ImageView imageView = new ImageView();
+
+        if (image != null) {
+            imageView.setImage(image);
+        }
+
         imageView.setFitWidth(190);
         imageView.setFitHeight(120);
         imageView.setPreserveRatio(false);
+        imageView.setSmooth(true);
 
-        Label titleLabel = new Label(title);
+        Label titleLabel =
+                new Label(advertisement.getTitle());
+
         titleLabel.setStyle(
-                "-fx-font-size: 16px; -fx-font-weight: bold;"
+                "-fx-font-size: 16px;"
+                        + "-fx-font-weight: bold;"
         );
 
-        Label priceLabel = new Label(price);
+        String formattedPrice =
+                String.format(
+                        "%,d تومان",
+                        advertisement
+                                .getPriceAmount()
+                                .longValue()
+                );
+
+        Label priceLabel =
+                new Label(formattedPrice);
+
         priceLabel.setStyle(
-                "-fx-font-size: 14px; -fx-text-fill: #1E88E5;"
+                "-fx-font-size: 14px;"
+                        + "-fx-text-fill: #1E88E5;"
         );
 
-        Label statusLabel = new Label("Status: " + status);
+        String status =
+                advertisement.getAdStatus() == null
+                        ? "UNKNOWN"
+                        : advertisement.getAdStatus();
+
+        Label statusLabel =
+                new Label("Status: " + status);
+
         statusLabel.setStyle(
-                "-fx-font-size: 12px; -fx-font-weight: bold;"
+                "-fx-font-size: 12px;"
+                        + "-fx-font-weight: bold;"
         );
 
-        Button editButton = new Button("Edit");
-        Button deleteButton = new Button("Delete");
-        Button soldButton = new Button("Mark as Sold");
+        Button editButton =
+                new Button("Edit");
 
-        editButton.setOnAction(event -> {
-            try {
-                FXMLLoader loader = new FXMLLoader(
-                        getClass().getResource(
-                                "/ir/aut/secondhand/frontend/fxml/edit-advertisement-view.fxml"
-                        )
-                );
+        Button deleteButton =
+                new Button("Delete");
 
-                Parent root = loader.load();
+        Button soldButton =
+                new Button("Mark as Sold");
 
-                EditAdvertisementController controller = loader.getController();
+        editButton.setOnAction(event ->
+                openEditAdvertisementPage(
+                        advertisement
+                )
+        );
 
-                controller.setAdvertisementData(
-                        title,
-                        "توضیحات نمونه برای " + title,
-                        "لوازم الکترونیکی",
-                        price,
-                        "تهران",
-                        imagePath
-                );
+        deleteButton.setOnAction(event ->
+                deleteAdvertisement(
+                        advertisement.getId(),
+                        advertisement.getTitle()
+                )
+        );
 
-                controller.setUpdateListener(
-                        (updatedTitel, updatedDescription, updatedcategory, updatedPrice, updatedCity, updatedImagePath) ->{
-                            titleLabel.setText(updatedTitel);
-                            priceLabel.setText(updatedPrice);
+        soldButton.setOnAction(event ->
+                markAdvertisementAsSold(
+                        advertisement.getId()
+                )
+        );
 
-                            try{
-                                Image updatedImage;
+        boolean sold =
+                "SOLD".equalsIgnoreCase(status);
 
-                                if (updatedImagePath.startsWith("file:")){
-                                    updatedImage = new Image(updatedImagePath);
-                                }
-                                else{
-                                    updatedImage = new Image(getClass().getResource(updatedImagePath).toExternalForm());
-                                }
+        if (sold) {
 
-                                imageView.setImage(updatedImage);
-                            }catch (Exception exception){
-                                exception.printStackTrace();
-                            }
-                        }
-                );
-
-                Stage stage = (Stage) myAdvertisementsTilePane.getScene().getWindow();
-
-                double width = stage.getWidth();
-                double height = stage.getHeight();
-                boolean maximized = stage.isMaximized();
-
-                Scene scene = new Scene(root, width, height);
-
-                scene.getStylesheets().add(getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
-
-                controller.setPreviousScene(stage.getScene());
-
-                stage.setScene(scene);
-                stage.setMaximized(maximized);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-        deleteButton.setOnAction(event -> {
-            myAdvertisementsTilePane.getChildren().remove(card);
-        });
-
-        soldButton.setOnAction(event -> {
-
-            statusLabel.setText("Status: Sold");
-
-            card.setStyle(
-                    "-fx-background-color: #e5e7eb;" +
-                            "-fx-background-radius: 12;" +
-                            "-fx-border-color: #9ca3af;" +
-                            "-fx-border-radius: 12;" +
-                            "-fx-padding: 14;"
+            applySoldStyle(
+                    card,
+                    titleLabel,
+                    priceLabel,
+                    editButton,
+                    deleteButton,
+                    soldButton
             );
+        }
 
-            titleLabel.setStyle(
-                    "-fx-font-size: 16px;" +
-                            "-fx-font-weight: bold;" +
-                            "-fx-text-fill: #6b7280;"
-            );
-
-            priceLabel.setStyle(
-                    "-fx-font-size: 14px;" +
-                            "-fx-text-fill: #6b7280;"
-            );
-
-            soldButton.setDisable(true);
-            deleteButton.setDisable(true);
-            editButton.setDisable(true);
-            soldButton.setText("Sold");
-        });
         card.getChildren().addAll(
                 imageView,
                 titleLabel,
@@ -247,6 +280,249 @@ public class ProfileController {
         );
 
         return card;
+    }
+
+    private Image loadAdvertisementImage(
+            String imagePath
+    ) {
+
+        if (imagePath == null || imagePath.isBlank()) {
+            return null;
+        }
+
+        try {
+
+            if (imagePath.startsWith("http://")
+                    || imagePath.startsWith("https://")) {
+
+                return new Image(
+                        imagePath,
+                        true
+                );
+            }
+
+            URL resource =
+                    getClass().getResource(imagePath);
+
+            if (resource == null) {
+                return null;
+            }
+
+            return new Image(
+                    resource.toExternalForm()
+            );
+
+        } catch (Exception exception) {
+
+            exception.printStackTrace();
+            return null;
+        }
+    }
+
+    private void deleteAdvertisement(
+            Long advertisementId,
+            String advertisementTitle
+    ) {
+
+        Alert confirmation =
+                new Alert(
+                        Alert.AlertType.CONFIRMATION
+                );
+
+        confirmation.setTitle(
+                "Delete Advertisement"
+        );
+
+        confirmation.setHeaderText(
+                "Delete \"" + advertisementTitle + "\"?"
+        );
+
+        confirmation.setContentText(
+                "This action cannot be undone."
+        );
+
+        ButtonType result =
+                confirmation.showAndWait()
+                        .orElse(ButtonType.CANCEL);
+
+        if (result != ButtonType.OK) {
+            return;
+        }
+
+        Task<Void> task =
+                new Task<>() {
+
+                    @Override
+                    protected Void call()
+                            throws Exception {
+
+                        apiClient.deleteAdvertisement(
+                                advertisementId
+                        );
+
+                        return null;
+                    }
+                };
+
+        task.setOnSucceeded(event ->
+                loadMyAdvertisements()
+        );
+
+        task.setOnFailed(event -> {
+
+            task.getException().printStackTrace();
+
+            showAdvertisementError(
+                    "Could not delete advertisement."
+            );
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void markAdvertisementAsSold(
+            Long advertisementId
+    ) {
+
+        Task<AdvertisementResponse> task =
+                new Task<>() {
+
+                    @Override
+                    protected AdvertisementResponse call()
+                            throws Exception {
+
+                        return apiClient
+                                .markAdvertisementAsSold(
+                                        advertisementId
+                                );
+                    }
+                };
+
+        task.setOnSucceeded(event ->
+                loadMyAdvertisements()
+        );
+
+        task.setOnFailed(event -> {
+
+            task.getException().printStackTrace();
+
+            showAdvertisementError(
+                    "Could not mark advertisement as sold."
+            );
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void applySoldStyle(
+            VBox card,
+            Label titleLabel,
+            Label priceLabel,
+            Button editButton,
+            Button deleteButton,
+            Button soldButton
+    ) {
+
+        card.setStyle(
+                "-fx-background-color: #e5e7eb;"
+                        + "-fx-background-radius: 12;"
+                        + "-fx-border-color: #9ca3af;"
+                        + "-fx-border-radius: 12;"
+                        + "-fx-padding: 14;"
+        );
+
+        titleLabel.setStyle(
+                "-fx-font-size: 16px;"
+                        + "-fx-font-weight: bold;"
+                        + "-fx-text-fill: #6b7280;"
+        );
+
+        priceLabel.setStyle(
+                "-fx-font-size: 14px;"
+                        + "-fx-text-fill: #6b7280;"
+        );
+
+        editButton.setDisable(true);
+        deleteButton.setDisable(true);
+        soldButton.setDisable(true);
+
+        soldButton.setText("Sold");
+    }
+
+    private void showAdvertisementError(
+            String message
+    ) {
+
+        Alert alert =
+                new Alert(
+                        Alert.AlertType.ERROR
+                );
+
+        alert.setTitle("Advertisement Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void openEditAdvertisementPage(
+            AdvertisementResponse advertisement
+    ) {
+
+        try {
+
+            FXMLLoader loader =
+                    new FXMLLoader(
+                            getClass().getResource(
+                                    "/ir/aut/secondhand/frontend/fxml/edit-advertisement-view.fxml"
+                            )
+                    );
+
+            Parent root = loader.load();
+
+            EditAdvertisementController controller =
+                    loader.getController();
+
+            controller.setAdvertisement(
+                    advertisement
+            );
+
+            Stage stage =
+                    (Stage) myAdvertisementsTilePane
+                            .getScene()
+                            .getWindow();
+
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            boolean maximized = stage.isMaximized();
+
+            Scene scene =
+                    new Scene(
+                            root,
+                            width,
+                            height
+                    );
+
+            scene.getStylesheets().add(
+                    getClass().getResource(
+                            "/ir/aut/secondhand/frontend/css/style.css"
+                    ).toExternalForm()
+            );
+
+            stage.setScene(scene);
+            stage.setMaximized(maximized);
+
+        } catch (IOException exception) {
+
+            exception.printStackTrace();
+
+            showAdvertisementError(
+                    "Could not open advertisement editor."
+            );
+        }
     }
 
     @FXML

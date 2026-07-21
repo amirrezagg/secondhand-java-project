@@ -28,6 +28,8 @@ public class AdvertisementResponse {
     private String sellerName;
     private String sellerUsername;
     private Long sellerId;
+    private String categoryName;
+    private String locationName;
 
     public AdvertisementResponse(Advertisement advertisement) {
         this.id = advertisement.getId();
@@ -42,6 +44,8 @@ public class AdvertisementResponse {
         this.sellerName = advertisement.getSeller().getFullName();
         this.sellerUsername = advertisement.getSeller().getUsername();
         this.sellerId = advertisement.getSeller().getId();
+        this.categoryName = advertisement.getCategory().getName();
+        this.locationName = advertisement.getLocation().getName();
         if (advertisement.getAdvertisementImages() != null && !advertisement.getAdvertisementImages().isEmpty()) {
             for (AdvertisementImage img : advertisement.getAdvertisementImages()) {
                 String imgUrl = "/api/advertisements/images/" + img.getImageUrl();
@@ -123,6 +127,22 @@ public class AdvertisementResponse {
 
     public void setLocationId(Long locationId) {
         this.locationId = locationId;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public String getLocationName() {
+        return locationName;
+    }
+
+    public void setLocationName(String locationName) {
+        this.locationName = locationName;
     }
 
     public Map<String, Object> getDynamicAttributes() {

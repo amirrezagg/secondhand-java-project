@@ -11,12 +11,23 @@ import ir.aut.secondhand.frontend.dto.UserProfileResponse;
 import ir.aut.secondhand.frontend.dto.UpdateUserRequest;
 import ir.aut.secondhand.frontend.dto.AdminUsersPageResponse;
 import ir.aut.secondhand.frontend.dto.AdminUserResponse;
-
+import ir.aut.secondhand.frontend.dto.CreateAdvertisementRequest;
+import ir.aut.secondhand.frontend.dto.AdvertisementResponse;
+import ir.aut.secondhand.frontend.dto.ReviewAdvertisementRequest;
+import ir.aut.secondhand.frontend.dto.CategoryResponse;
+import ir.aut.secondhand.frontend.dto.LocationResponse;
+import ir.aut.secondhand.frontend.dto.UpdateAdvertisementRequest;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.io.File;
+import java.util.UUID;
 
 public class ApiClient {
 
@@ -369,6 +380,688 @@ public class ApiClient {
                         + response.statusCode()
                         + " Body: "
                         + response.body()
+        );
+    }
+
+    public AdvertisementResponse createAdvertisement(
+            CreateAdvertisementRequest createAdvertisementRequest
+    ) throws IOException, InterruptedException {
+
+        String requestBody =
+                objectMapper.writeValueAsString(
+                        createAdvertisementRequest
+                );
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL + "/advertisements/"
+                        )
+                )
+                .header(
+                        "Content-Type",
+                        "application/json"
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .POST(
+                        HttpRequest.BodyPublishers.ofString(
+                                requestBody
+                        )
+                )
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() >= 200
+                && response.statusCode() < 300) {
+
+            return objectMapper.readValue(
+                    response.body(),
+                    AdvertisementResponse.class
+            );
+        }
+
+        throw new IOException(
+                extractAdvertisementErrorMessage(
+                        response.body(),
+                        response.statusCode()
+                )
+        );
+    }
+
+    private String extractAdvertisementErrorMessage(
+            String responseBody,
+            int statusCode
+    ) {
+        try {
+            var root = objectMapper.readTree(responseBody);
+
+            var errorsNode = root.path("errors");
+
+            if (errorsNode.isObject()
+                    && errorsNode.fieldNames().hasNext()) {
+
+                String firstField =
+                        errorsNode.fieldNames().next();
+
+                return errorsNode
+                        .path(firstField)
+                        .asText();
+            }
+
+            if (root.has("message")) {
+                return root
+                        .path("message")
+                        .asText();
+            }
+
+        } catch (Exception ignored) {
+        }
+
+        return "Advertisement submission failed. Status: "
+                + statusCode;
+    }
+
+
+    public List<AdvertisementResponse> getPendingAdvertisements()
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/advertisements/pending"))
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(
+                request,
+                HttpResponse.BodyHandlers.ofString()
+        );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    extractAdvertisementErrorMessage(
+                            response.body(),
+                            response.statusCode()
+                    )
+            );
+        }
+
+        var root = objectMapper.readTree(response.body());
+
+        // Backend may return either a raw array or a wrapped object.
+        var advertisementsNode = root;
+
+        if (root.isObject()) {
+            if (root.has("items")) {
+                advertisementsNode = root.get("items");
+            } else if (root.has("data")) {
+                advertisementsNode = root.get("data");
+            } else if (root.has("content")) {
+                advertisementsNode = root.get("content");
+            } else if (root.has("result")) {
+                advertisementsNode = root.get("result");
+            }
+        }
+
+        if (!advertisementsNode.isArray()) {
+            throw new IOException(
+                    "Unexpected pending advertisements response: "
+                            + response.body()
+            );
+        }
+
+        return objectMapper.readerForListOf(
+                AdvertisementResponse.class
+        ).readValue(advertisementsNode);
+    }
+
+    public AdvertisementResponse reviewAdvertisement(
+            Long id,
+            ReviewAdvertisementRequest request
+    ) throws IOException, InterruptedException {
+
+        String body =
+                objectMapper.writeValueAsString(request);
+
+        HttpRequest httpRequest =
+                HttpRequest.newBuilder()
+                        .uri(
+                                URI.create(
+                                        BASE_URL
+                                                + "/advertisements/"
+                                                + id
+                                                + "/review"
+                                )
+                        )
+                        .header(
+                                "Authorization",
+                                "Bearer " + SessionManager.getToken()
+                        )
+                        .header(
+                                "Content-Type",
+                                "application/json"
+                        )
+                        .PUT(
+                                HttpRequest.BodyPublishers
+                                        .ofString(body)
+                        )
+                        .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        httpRequest,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() >= 200
+                && response.statusCode() < 300) {
+
+            return objectMapper.readValue(
+                    response.body(),
+                    AdvertisementResponse.class
+            );
+        }
+
+        throw new IOException(response.body());
+    }
+
+    public List<AdvertisementResponse> getAdvertisements()
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/advertisements"))
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(response.body());
+        }
+
+        var root = objectMapper.readTree(response.body());
+
+        var items = root.get("items");
+
+        return objectMapper.readerForListOf(
+                AdvertisementResponse.class
+        ).readValue(items);
+    }
+
+    public List<CategoryResponse> getCategories()
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/categories"))
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Could not load categories. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
+
+        var root = objectMapper.readTree(response.body());
+        var categoriesNode = root;
+
+        if (root.isObject()) {
+
+            if (root.has("items")) {
+                categoriesNode = root.get("items");
+
+            } else if (root.has("data")) {
+                categoriesNode = root.get("data");
+
+            } else if (root.has("content")) {
+                categoriesNode = root.get("content");
+            }
+        }
+
+        if (!categoriesNode.isArray()) {
+            throw new IOException(
+                    "Unexpected categories response: "
+                            + response.body()
+            );
+        }
+
+        return objectMapper.readerForListOf(
+                CategoryResponse.class
+        ).readValue(categoriesNode);
+    }
+
+    public void deleteAdvertisement(Long advertisementId)
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL
+                                        + "/advertisements/"
+                                        + advertisementId
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Could not delete advertisement. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
+    }
+
+    public List<LocationResponse> getLocations()
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL + "/locations/tree"
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Could not load locations. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
+
+        var root = objectMapper.readTree(
+                response.body()
+        );
+
+        var locationsNode = root;
+
+        if (root.isObject()) {
+
+            if (root.has("items")) {
+                locationsNode = root.get("items");
+
+            } else if (root.has("data")) {
+                locationsNode = root.get("data");
+
+            } else if (root.has("content")) {
+                locationsNode = root.get("content");
+            }
+        }
+
+        if (!locationsNode.isArray()) {
+
+            throw new IOException(
+                    "Unexpected locations response: "
+                            + response.body()
+            );
+        }
+
+        return objectMapper.readerForListOf(
+                LocationResponse.class
+        ).readValue(locationsNode);
+    }
+
+
+    public void uploadAdvertisementImages(
+            Long advertisementId,
+            List<File> files,
+            int mainImageIndex
+    ) throws IOException, InterruptedException {
+
+        if (files == null || files.isEmpty()) {
+            return;
+        }
+
+        String boundary =
+                "----SecondHandBoundary" + UUID.randomUUID();
+
+        ByteArrayOutputStream output =
+                new ByteArrayOutputStream();
+
+        for (File file : files) {
+
+            String mimeType =
+                    Files.probeContentType(file.toPath());
+
+            if (mimeType == null) {
+
+                String lowerName =
+                        file.getName().toLowerCase();
+
+                mimeType = lowerName.endsWith(".png")
+                        ? "image/png"
+                        : "image/jpeg";
+            }
+
+            output.write(
+                    ("--" + boundary + "\r\n")
+                            .getBytes(StandardCharsets.UTF_8)
+            );
+
+            output.write(
+                    (
+                            "Content-Disposition: form-data; "
+                                    + "name=\"files\"; filename=\""
+                                    + file.getName()
+                                    + "\"\r\n"
+                    ).getBytes(StandardCharsets.UTF_8)
+            );
+
+            output.write(
+                    ("Content-Type: " + mimeType + "\r\n\r\n")
+                            .getBytes(StandardCharsets.UTF_8)
+            );
+
+            output.write(
+                    Files.readAllBytes(file.toPath())
+            );
+
+            output.write(
+                    "\r\n".getBytes(StandardCharsets.UTF_8)
+            );
+        }
+
+        output.write(
+                ("--" + boundary + "\r\n")
+                        .getBytes(StandardCharsets.UTF_8)
+        );
+
+        output.write(
+                (
+                        "Content-Disposition: form-data; "
+                                + "name=\"mainImageIndex\"\r\n\r\n"
+                ).getBytes(StandardCharsets.UTF_8)
+        );
+
+        output.write(
+                String.valueOf(mainImageIndex)
+                        .getBytes(StandardCharsets.UTF_8)
+        );
+
+        output.write(
+                "\r\n".getBytes(StandardCharsets.UTF_8)
+        );
+
+        output.write(
+                ("--" + boundary + "--\r\n")
+                        .getBytes(StandardCharsets.UTF_8)
+        );
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL
+                                        + "/advertisements/"
+                                        + advertisementId
+                                        + "/images"
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .header(
+                        "Content-Type",
+                        "multipart/form-data; boundary="
+                                + boundary
+                )
+                .POST(
+                        HttpRequest.BodyPublishers.ofByteArray(
+                                output.toByteArray()
+                        )
+                )
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Image upload failed. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
+    }
+
+    public List<AdvertisementResponse> getMyAdvertisements()
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL + "/advertisements/my"
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Could not load your advertisements. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
+
+        var root =
+                objectMapper.readTree(
+                        response.body()
+                );
+
+        var advertisementsNode = root;
+
+        if (root.isObject()) {
+
+            if (root.has("items")) {
+                advertisementsNode = root.get("items");
+
+            } else if (root.has("data")) {
+                advertisementsNode = root.get("data");
+
+            } else if (root.has("content")) {
+                advertisementsNode = root.get("content");
+            }
+        }
+
+        if (!advertisementsNode.isArray()) {
+
+            throw new IOException(
+                    "Unexpected my advertisements response: "
+                            + response.body()
+            );
+        }
+
+        return objectMapper
+                .readerForListOf(
+                        AdvertisementResponse.class
+                )
+                .readValue(advertisementsNode);
+    }
+
+    public AdvertisementResponse markAdvertisementAsSold(
+            Long advertisementId
+    ) throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(
+                        BASE_URL
+                                + "/advertisements/"
+                                + advertisementId
+                                + "/sold"
+                ))
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .PUT(
+                        HttpRequest.BodyPublishers.noBody()
+                )
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Could not mark advertisement as sold. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
+
+        return objectMapper.readValue(
+                response.body(),
+                AdvertisementResponse.class
+        );
+    }
+
+    public AdvertisementResponse updateAdvertisement(
+            Long advertisementId,
+            UpdateAdvertisementRequest updateRequest
+    ) throws IOException, InterruptedException {
+
+        String requestBody =
+                objectMapper.writeValueAsString(
+                        updateRequest
+                );
+
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(
+                                URI.create(
+                                        BASE_URL
+                                                + "/advertisements/"
+                                                + advertisementId
+                                )
+                        )
+                        .header(
+                                "Authorization",
+                                "Bearer "
+                                        + SessionManager.getToken()
+                        )
+                        .header(
+                                "Content-Type",
+                                "application/json"
+                        )
+                        .PUT(
+                                HttpRequest.BodyPublishers
+                                        .ofString(requestBody)
+                        )
+                        .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Could not update advertisement. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
+
+        return objectMapper.readValue(
+                response.body(),
+                AdvertisementResponse.class
         );
     }
 

@@ -44,8 +44,10 @@
             <TextField fx:id="priceField"
                        promptText="Price"/>
 
-            <TextField fx:id="cityField"
-                       promptText="City"/>
+            <ComboBox fx:id="locationBox"
+                      promptText="Select location"
+                      styleClass="blue-combo"
+                      maxWidth="-Infinity"/>
 
             <Button text="Choose Images"
                     onAction="#chooseImages"/>

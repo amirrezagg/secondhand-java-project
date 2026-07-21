@@ -1,5 +1,6 @@
 package ir.aut.secondhand.frontend;
 
+import ir.aut.secondhand.frontend.dto.CategoryResponse;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -16,8 +17,16 @@ import java.util.ArrayList;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import ir.aut.secondhand.frontend.api.ApiClient;
+import ir.aut.secondhand.frontend.dto.AdvertisementResponse;
+import ir.aut.secondhand.frontend.dto.CreateAdvertisementRequest;
+import ir.aut.secondhand.frontend.dto.LocationResponse;
+import javafx.concurrent.Task;
+import java.math.BigDecimal;
 
 public class AddAdvertisementController {
+
+    private final ApiClient apiClient = new ApiClient();
 
     @FXML
     private TextField titleField;
@@ -26,13 +35,13 @@ public class AddAdvertisementController {
     private TextArea descriptionArea;
 
     @FXML
-    private ComboBox<String> categoryBox;
+    private ComboBox<CategoryResponse> categoryBox;
 
     @FXML
     private TextField priceField;
 
     @FXML
-    private TextField cityField;
+    private ComboBox<LocationResponse> locationBox;
 
     @FXML
     private ImageView imagePreview;
@@ -51,16 +60,8 @@ public class AddAdvertisementController {
 
     @FXML
     public void initialize() {
-        categoryBox.getItems().addAll(
-                "Electronics",
-                "Vehicles",
-                "Clothing",
-                "Furniture",
-                "Books",
-                "Sports",
-                "other"
-
-        );
+        loadCategories();
+        loadLocations();
     }
 
     @FXML
@@ -135,40 +136,223 @@ public class AddAdvertisementController {
 
     @FXML
     private void submitAdvertisement() {
-        String title = titleField.getText();
-        String description = descriptionArea.getText();
-        String price = priceField.getText();
-        String city = cityField.getText();
-        String category = categoryBox.getValue();
 
-        if (title.isBlank() || description.isBlank() || price.isBlank() || city.isBlank() || category == null){
-            messageLabel.setStyle("-fx-text-fill: red; -fx-font-size: 14px; -fx-font-weight: bold;");
-            messageLabel.setText("Please fill in all fields");
+        String title =
+                titleField.getText().trim();
+
+        String description =
+                descriptionArea.getText().trim();
+
+        String priceText =
+                priceField.getText().trim();
+
+        LocationResponse selectedLocation = locationBox.getValue();
+
+        CategoryResponse selectedCategory = categoryBox.getValue();
+
+        if (title.isBlank()
+                || description.isBlank()
+                || priceText.isBlank()
+                || selectedLocation == null
+                || selectedCategory == null) {
+
+            showError("Please fill in all fields.");
             return;
         }
+
+        if (title.length() < 3) {
+            showError(
+                    "Title must contain at least 3 characters."
+            );
+            return;
+        }
+
+        if (title.length() > 70) {
+            showError(
+                    "Title must not exceed 70 characters."
+            );
+            return;
+        }
+
+        if (description.length() < 10) {
+            showError(
+                    "Description must contain at least 10 characters."
+            );
+            return;
+        }
+
+        if (description.length() > 1000) {
+            showError(
+                    "Description must not exceed 1000 characters."
+            );
+            return;
+        }
+
+        BigDecimal price;
 
         try {
-            Double.parseDouble(price);
-        }
-        catch (NumberFormatException e){
-            messageLabel.setStyle("-fx-text-fill: red; -fx-font-size: 14px; -fx-font-weight: bold;");
+            price = new BigDecimal(priceText);
 
-            messageLabel.setText("Price must be a valid number");
+            if (price.compareTo(BigDecimal.ZERO) < 0) {
+                showError(
+                        "Price cannot be negative."
+                );
+                return;
+            }
+
+        } catch (NumberFormatException exception) {
+            showError(
+                    "Price must be a valid number."
+            );
             return;
         }
 
-        messageLabel.setStyle("-fx-text-fill: green; -fx-font-size: 14px; -fx-font-weight: bold;");
-        messageLabel.setText("Advertisement submitted....Waiting for admin to approve");
+        Long categoryId = selectedCategory.getId();
+        Long locationId = selectedLocation.getId();
 
+        CreateAdvertisementRequest request =
+                new CreateAdvertisementRequest(
+                        title,
+                        description,
+                        price,
+                        "IRR",
+                        categoryId,
+                        locationId
+                );
+
+        showLoading(
+                "Submitting advertisement..."
+        );
+
+        List<File> imagesToUpload =
+                new ArrayList<>(selectedImages);
+
+        int calculatedMainImageIndex =
+                coverImage == null
+                        ? 0
+                        : imagesToUpload.indexOf(coverImage);
+
+        final int mainImageIndex =
+                calculatedMainImageIndex < 0
+                        ? 0
+                        : calculatedMainImageIndex;
+
+        Task<AdvertisementResponse> task =
+                new Task<>() {
+
+                    @Override
+                    protected AdvertisementResponse call()
+                            throws Exception {
+
+                        AdvertisementResponse createdAdvertisement =
+                                apiClient.createAdvertisement(request);
+
+                        if (!imagesToUpload.isEmpty()) {
+
+                            apiClient.uploadAdvertisementImages(
+                                    createdAdvertisement.getId(),
+                                    imagesToUpload,
+                                    mainImageIndex
+                            );
+                        }
+
+                        return createdAdvertisement;
+                    }
+                };
+
+        task.setOnSucceeded(event -> {
+
+            AdvertisementResponse response =
+                    task.getValue();
+
+            String imageMessage =
+                    imagesToUpload.isEmpty()
+                            ? " No images uploaded."
+                            : " "
+                            + imagesToUpload.size()
+                            + " image(s) uploaded.";
+
+            showSuccess(
+                    "Advertisement submitted successfully. "
+                            + "Status: "
+                            + response.getAdStatus()
+                            + "."
+                            + imageMessage
+            );
+
+            clearForm();
+        });
+
+        task.setOnFailed(event -> {
+
+            Throwable exception =
+                    task.getException();
+
+            String errorMessage =
+                    exception.getMessage();
+
+            if (errorMessage == null
+                    || errorMessage.isBlank()) {
+
+                errorMessage =
+                        "Advertisement could not be submitted.";
+            }
+
+            showError(errorMessage);
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void showError(String message) {
+
+        messageLabel.setStyle(
+                "-fx-text-fill: red;"
+                        + "-fx-font-size: 14px;"
+                        + "-fx-font-weight: bold;"
+        );
+
+        messageLabel.setText(message);
+    }
+
+    private void showSuccess(String message) {
+
+        messageLabel.setStyle(
+                "-fx-text-fill: green;"
+                        + "-fx-font-size: 14px;"
+                        + "-fx-font-weight: bold;"
+        );
+
+        messageLabel.setText(message);
+    }
+
+    private void showLoading(String message) {
+
+        messageLabel.setStyle(
+                "-fx-text-fill: #2563eb;"
+                        + "-fx-font-size: 14px;"
+                        + "-fx-font-weight: bold;"
+        );
+
+        messageLabel.setText(message);
+    }
+
+    private void clearForm() {
 
         titleField.clear();
         descriptionArea.clear();
         priceField.clear();
-        cityField.clear();
+        locationBox.setValue(null);
         categoryBox.setValue(null);
+
         selectedImages.clear();
         coverImage = null;
-        imageTilePane.getChildren().clear();
+
+        imageTilePane
+                .getChildren()
+                .clear();
     }
 
     @FXML
@@ -188,4 +372,166 @@ public class AddAdvertisementController {
         stage.setScene(scene);
         stage.setMaximized(maximized);
     }
+
+    private void loadCategories() {
+
+        categoryBox.setDisable(true);
+        showLoading("Loading categories...");
+
+        Task<List<CategoryResponse>> task =
+                new Task<>() {
+
+                    @Override
+                    protected List<CategoryResponse> call()
+                            throws Exception {
+
+                        return apiClient.getCategories();
+                    }
+                };
+
+        task.setOnSucceeded(event -> {
+
+            categoryBox.getItems().clear();
+
+            List<CategoryResponse> selectableCategories =
+                    new ArrayList<>();
+
+            for (CategoryResponse category : task.getValue()) {
+                collectSelectableCategories(
+                        category,
+                        selectableCategories
+                );
+            }
+
+            categoryBox.getItems().addAll(
+                    selectableCategories
+            );
+
+            categoryBox.setDisable(false);
+            messageLabel.setText("");
+        });
+
+        task.setOnFailed(event -> {
+
+            categoryBox.setDisable(false);
+
+            String errorMessage =
+                    task.getException() == null
+                            || task.getException().getMessage() == null
+                            ? "Could not load categories."
+                            : task.getException().getMessage();
+
+            showError(errorMessage);
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void collectSelectableCategories(
+            CategoryResponse category,
+            List<CategoryResponse> result
+    ) {
+
+        if (Boolean.TRUE.equals(category.getSelectable())) {
+            result.add(category);
+        }
+
+        if (category.getSubCategories() != null) {
+
+            for (CategoryResponse subCategory
+                    : category.getSubCategories()) {
+
+                collectSelectableCategories(
+                        subCategory,
+                        result
+                );
+            }
+        }
+    }
+
+    private void loadLocations() {
+
+        locationBox.setDisable(true);
+
+        Task<List<LocationResponse>> task =
+                new Task<>() {
+
+                    @Override
+                    protected List<LocationResponse> call()
+                            throws Exception {
+
+                        return apiClient.getLocations();
+                    }
+                };
+
+        task.setOnSucceeded(event -> {
+
+            locationBox.getItems().clear();
+
+            List<LocationResponse> selectableLocations =
+                    new ArrayList<>();
+
+            for (LocationResponse location
+                    : task.getValue()) {
+
+                collectSelectableLocations(
+                        location,
+                        selectableLocations
+                );
+            }
+
+            locationBox.getItems().addAll(
+                    selectableLocations
+            );
+
+            locationBox.setDisable(false);
+        });
+
+        task.setOnFailed(event -> {
+
+            locationBox.setDisable(false);
+
+            Throwable exception =
+                    task.getException();
+
+            showError(
+                    exception == null
+                            || exception.getMessage() == null
+                            ? "Could not load locations."
+                            : exception.getMessage()
+            );
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void collectSelectableLocations(
+            LocationResponse location,
+            List<LocationResponse> result
+    ) {
+
+        if ("CITY".equals(location.getType())
+                || "DISTRICT".equals(location.getType())) {
+
+            result.add(location);
+        }
+
+        if (location.getSubLocations() != null) {
+
+            for (LocationResponse subLocation
+                    : location.getSubLocations()) {
+
+                collectSelectableLocations(
+                        subLocation,
+                        result
+                );
+            }
+        }
+    }
+
+
 }

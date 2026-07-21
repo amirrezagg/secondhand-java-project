@@ -1,5 +1,8 @@
 package ir.aut.secondhand.frontend;
 
+import java.util.List;
+import java.util.ArrayList;
+
 public class Advertisement {
 
     private long id;
@@ -9,7 +12,9 @@ public class Advertisement {
     private String city;
     private String category;
     private String imagePath;
+    private List<String> imageUrls = new ArrayList<>();
     private String status;
+    private String sellerName;
 
     public Advertisement(
             long id,
@@ -19,7 +24,9 @@ public class Advertisement {
             String city,
             String category,
             String imagePath,
-            String status
+            String status,
+            String sellerName,
+            List<String> imageUrls
     ) {
         this.id = id;
         this.title = title;
@@ -29,6 +36,11 @@ public class Advertisement {
         this.category = category;
         this.imagePath = imagePath;
         this.status = status;
+        this.sellerName = sellerName;
+
+        if (imageUrls != null){
+            this.imageUrls = new ArrayList<>(imageUrls);
+        }
     }
 
     public long getId() {
@@ -41,6 +53,10 @@ public class Advertisement {
 
     public String getTitle() {
         return title;
+    }
+
+    public String getSellerName() {
+        return sellerName;
     }
 
     public void setTitle(String title) {
@@ -93,5 +109,13 @@ public class Advertisement {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public List<String> getImageUrls() {
+        return imageUrls;
+    }
+
+    public void setImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
     }
 }
