@@ -92,6 +92,10 @@ public class UserService {
             currentUser.setFullName(updatedUser.getFullName());
         }
 
+        if (updatedUser.getPhoneNumber() != null && !updatedUser.getPhoneNumber().isEmpty()) {
+            currentUser.setPhoneNumber(PhoneNumberValidationUtil.normalizePhoneNumber(updatedUser.getPhoneNumber()));
+        }
+
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
             currentUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
