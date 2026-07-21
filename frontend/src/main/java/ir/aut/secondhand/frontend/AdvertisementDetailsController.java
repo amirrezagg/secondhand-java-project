@@ -15,8 +15,14 @@ import javafx.scene.image.Image;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.layout.HBox;
+import ir.aut.secondhand.frontend.api.ApiClient;
+import javafx.concurrent.Task;
 
 public class AdvertisementDetailsController {
+
+    private final ApiClient apiClient = new ApiClient();
+
+    private Long advertisementId;
 
     @FXML
     private ImageView mainImageView;
@@ -119,28 +125,6 @@ public class AdvertisementDetailsController {
         }
     }
 
-    @FXML
-    public void setAdvertisementDetails(
-            String title,
-            String price,
-            String cityCategory,
-            String description,
-            String sellerName,
-            String imagePath
-    ) {
-
-        setAdvertisementDetails(
-                title,
-                price,
-                cityCategory,
-                description,
-                sellerName,
-                imagePath,
-                imagePath == null || imagePath.isBlank()
-                        ? List.of()
-                        : List.of(imagePath)
-        );
-    }
 
     public void setAdvertisementDetails(
             String title,
@@ -151,6 +135,7 @@ public class AdvertisementDetailsController {
             String imagePath,
             List<String> imageUrls
     ) {
+        this.advertisementId = advertisementId;
 
         currentTitle = title;
         currentPrice = price;
@@ -239,6 +224,30 @@ public class AdvertisementDetailsController {
         }
     }
 
+    public void setAdvertisementDetails(
+            Long advertisementId,
+            String title,
+            String price,
+            String cityCategory,
+            String description,
+            String sellerName,
+            String imagePath,
+            List<String> imageUrls
+    ) {
+
+        this.advertisementId = advertisementId;
+
+        setAdvertisementDetails(
+                title,
+                price,
+                cityCategory,
+                description,
+                sellerName,
+                imagePath,
+                imageUrls
+        );
+    }
+
     private void showMainImage(String imagePath) {
 
         Image image = loadImage(imagePath);
@@ -284,32 +293,100 @@ public class AdvertisementDetailsController {
     @FXML
     private void addToFavorites() {
 
-        FavoriteAdvertisement advertisement = new FavoriteAdvertisement(currentTitle, currentPrice, currentCityCategory, currentDescription, currentImagePath);
+        if (advertisementId == null) {
 
-        boolean alreadyExists = FavoritesManager.getFavorites()
-                .stream()
-                .anyMatch(favorite ->
-                        favorite.getTitle().equals(currentTitle)
-                );
-
-        if (alreadyExists) {
             favoriteMessageLabel.setStyle(
-                    "-fx-text-fill: #d97706; -fx-font-weight: bold;"
+                    "-fx-text-fill: red;"
+                            + "-fx-font-weight: bold;"
             );
+
             favoriteMessageLabel.setText(
-                    "این آگهی قبلاً به علاقه‌مندی‌ها اضافه شده است."
+                    "Advertisement ID not found."
             );
+
             return;
         }
 
-        FavoritesManager.addFavorite(advertisement);
+        addToFavoritesButton.setDisable(true);
 
-        favoriteMessageLabel.setStyle(
-                "-fx-text-fill: green; -fx-font-weight: bold;"
-        );
-        favoriteMessageLabel.setText(
-                "آگهی با موفقیت به علاقه‌مندی‌ها اضافه شد."
-        );
+        Task<Boolean> task = new Task<>() {
+
+            @Override
+            protected Boolean call() throws Exception {
+
+                boolean alreadyFavorite =
+                        apiClient.getFavorites()
+                                .stream()
+                                .anyMatch(favorite ->
+                                        favorite.getAdvertisement() != null
+                                                && advertisementId.equals(
+                                                favorite
+                                                        .getAdvertisement()
+                                                        .getId()
+                                        )
+                                );
+
+                if (alreadyFavorite) {
+                    return false;
+                }
+
+                apiClient.toggleFavorite(
+                        advertisementId
+                );
+
+                return true;
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+
+            addToFavoritesButton.setDisable(false);
+
+            if (Boolean.TRUE.equals(task.getValue())) {
+
+                favoriteMessageLabel.setStyle(
+                        "-fx-text-fill: green;"
+                                + "-fx-font-weight: bold;"
+                );
+
+                favoriteMessageLabel.setText(
+                        "Advertisement added to favorites successfully."
+                );
+
+                addToFavoritesButton.setDisable(true);
+
+            } else {
+
+                favoriteMessageLabel.setStyle(
+                        "-fx-text-fill: #d97706;"
+                                + "-fx-font-weight: bold;"
+                );
+
+                favoriteMessageLabel.setText(
+                        "This advertisement is already in your favorites."
+                );
+            }
+        });
+
+        task.setOnFailed(event -> {
+
+            addToFavoritesButton.setDisable(false);
+
+            favoriteMessageLabel.setStyle(
+                    "-fx-text-fill: red;"
+                            + "-fx-font-weight: bold;"
+            );
+
+            favoriteMessageLabel.setText(
+                    "Could not update favorites."
+            );
+
+            task.getException().printStackTrace();
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     @FXML

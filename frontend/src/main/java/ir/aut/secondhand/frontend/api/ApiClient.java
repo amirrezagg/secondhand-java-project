@@ -17,6 +17,7 @@ import ir.aut.secondhand.frontend.dto.ReviewAdvertisementRequest;
 import ir.aut.secondhand.frontend.dto.CategoryResponse;
 import ir.aut.secondhand.frontend.dto.LocationResponse;
 import ir.aut.secondhand.frontend.dto.UpdateAdvertisementRequest;
+import ir.aut.secondhand.frontend.dto.FavoritesResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -1063,6 +1064,125 @@ public class ApiClient {
                 response.body(),
                 AdvertisementResponse.class
         );
+    }
+
+    public List<FavoritesResponse> getFavorites()
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL + "/favorites"
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Could not load favorites. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
+
+        var root =
+                objectMapper.readTree(
+                        response.body()
+                );
+
+        var favoritesNode = root;
+
+        if (root.isObject()) {
+
+            if (root.has("items")) {
+                favoritesNode = root.get("items");
+
+            } else if (root.has("data")) {
+                favoritesNode = root.get("data");
+
+            } else if (root.has("content")) {
+                favoritesNode = root.get("content");
+
+            } else if (root.has("result")) {
+                favoritesNode = root.get("result");
+            }
+        }
+
+        if (!favoritesNode.isArray()) {
+
+            throw new IOException(
+                    "Unexpected favorites response: "
+                            + response.body()
+            );
+        }
+
+        return objectMapper
+                .readerForListOf(
+                        FavoritesResponse.class
+                )
+                .readValue(favoritesNode);
+    }
+
+    public void toggleFavorite(
+            Long advertisementId
+    ) throws IOException, InterruptedException {
+
+        if (advertisementId == null) {
+            throw new IllegalArgumentException(
+                    "Advertisement ID cannot be null."
+            );
+        }
+
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(
+                                URI.create(
+                                        BASE_URL
+                                                + "/favorites/"
+                                                + advertisementId
+                                                + "/toggle"
+                                )
+                        )
+                        .header(
+                                "Authorization",
+                                "Bearer "
+                                        + SessionManager.getToken()
+                        )
+                        .POST(
+                                HttpRequest.BodyPublishers.noBody()
+                        )
+                        .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Could not update favorite. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
     }
 
 }
