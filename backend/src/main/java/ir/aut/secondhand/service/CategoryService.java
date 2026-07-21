@@ -67,7 +67,6 @@ public class CategoryService {
         Category category = new Category();
         category.setName(request.getName());
 
-
         if (request.getParentId() != null) {
             Category parent = categoryRepository.findById(request.getParentId())
                     .orElseThrow(() -> new ResourceNotFoundException("category", "Parent category not found"));
@@ -78,6 +77,8 @@ public class CategoryService {
             }
 
             category.setParent(parent);
+        } else {
+            category.setSelectable(true);
         }
 
         Category savedCategory = categoryRepository.save(category);
