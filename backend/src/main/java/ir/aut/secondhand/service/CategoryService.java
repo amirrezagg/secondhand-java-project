@@ -67,7 +67,6 @@ public class CategoryService {
         Category category = new Category();
         category.setName(request.getName());
 
-
         if (request.getParentId() != null) {
             Category parent = categoryRepository.findById(request.getParentId())
                     .orElseThrow(() -> new ResourceNotFoundException("category", "Parent category not found"));
@@ -77,6 +76,7 @@ public class CategoryService {
                         "Categories can have only one level of subcategories.");
             }
 
+            category.setSelectable(true);
             category.setParent(parent);
         }
 
@@ -89,8 +89,7 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("category"));
 
-        if (request.getParentId() != null &&
-                request.getParentId().equals(category.getId())) {
+        if (request.getParentId() != null && request.getParentId().equals(category.getId())) {
             throw new IllegalArgumentException("A category cannot be its own parent.");
         }
 
@@ -99,12 +98,24 @@ public class CategoryService {
         if (request.getParentId() != null) {
             Category parent = categoryRepository.findById(request.getParentId())
                     .orElseThrow(() -> new ResourceNotFoundException("category", "Parent category not found"));
+
+            if (parent.getParent() != null) {
+                throw new IllegalArgumentException("Categories can have only one level of subcategories.");
+            }
+
+            if (categoryRepository.existsByParentId(id)) {
+                throw new IllegalArgumentException("Cannot assign a parent to a category that already has subcategories.");
+            }
+
             category.setParent(parent);
+            category.setSelectable(true);
         } else {
             category.setParent(null);
+            category.setSelectable(false);
         }
 
-        return new CategoryResponse(category);
+        Category savedCategory = categoryRepository.save(category);
+        return new CategoryResponse(savedCategory);
     }
 
     @Transactional
