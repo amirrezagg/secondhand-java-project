@@ -11,13 +11,18 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.image.Image;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.scene.layout.HBox;
 
 public class AdvertisementDetailsController {
 
     @FXML
     private ImageView mainImageView;
+
+    @FXML
+    private HBox thumbnailBox;
 
     @FXML
     private Label titleLabel;
@@ -115,7 +120,37 @@ public class AdvertisementDetailsController {
     }
 
     @FXML
-    public void setAdvertisementDetails(String title, String price, String cityCategory, String description, String imagePath){
+    public void setAdvertisementDetails(
+            String title,
+            String price,
+            String cityCategory,
+            String description,
+            String sellerName,
+            String imagePath
+    ) {
+
+        setAdvertisementDetails(
+                title,
+                price,
+                cityCategory,
+                description,
+                sellerName,
+                imagePath,
+                imagePath == null || imagePath.isBlank()
+                        ? List.of()
+                        : List.of(imagePath)
+        );
+    }
+
+    public void setAdvertisementDetails(
+            String title,
+            String price,
+            String cityCategory,
+            String description,
+            String sellerName,
+            String imagePath,
+            List<String> imageUrls
+    ) {
 
         currentTitle = title;
         currentPrice = price;
@@ -128,7 +163,122 @@ public class AdvertisementDetailsController {
         cityCategoryLabel.setText(cityCategory);
         descriptionLabel.setText(description);
 
-        mainImageView.setImage(new Image(getClass().getResource(imagePath).toExternalForm()));
+        sellerLabel.setText(
+                sellerName == null || sellerName.isBlank()
+                        ? "Unknown seller"
+                        : sellerName
+        );
+
+        List<String> galleryImages =
+                imageUrls == null
+                        ? new ArrayList<>()
+                        : new ArrayList<>(imageUrls);
+
+        if (galleryImages.isEmpty()
+                && imagePath != null
+                && !imagePath.isBlank()) {
+
+            galleryImages.add(imagePath);
+        }
+
+        thumbnailBox.getChildren().clear();
+
+        if (galleryImages.isEmpty()) {
+
+            mainImageView.setImage(null);
+
+            thumbnailBox.setVisible(false);
+            thumbnailBox.setManaged(false);
+
+            return;
+        }
+
+        thumbnailBox.setVisible(
+                galleryImages.size() > 1
+        );
+
+        thumbnailBox.setManaged(
+                galleryImages.size() > 1
+        );
+
+        showMainImage(
+                galleryImages.get(0)
+        );
+
+        for (String galleryImagePath : galleryImages) {
+
+            Image thumbnailImage =
+                    loadImage(galleryImagePath);
+
+            if (thumbnailImage == null) {
+                continue;
+            }
+
+            ImageView thumbnail =
+                    new ImageView(thumbnailImage);
+
+            thumbnail.setFitWidth(90);
+            thumbnail.setFitHeight(70);
+            thumbnail.setPreserveRatio(false);
+            thumbnail.setSmooth(true);
+
+            thumbnail.setStyle(
+                    "-fx-cursor: hand;"
+                            + "-fx-border-color: #cbd5e1;"
+                            + "-fx-border-width: 2;"
+                            + "-fx-border-radius: 6;"
+            );
+
+            thumbnail.setOnMouseClicked(event ->
+                    showMainImage(galleryImagePath)
+            );
+
+            thumbnailBox.getChildren().add(
+                    thumbnail
+            );
+        }
+    }
+
+    private void showMainImage(String imagePath) {
+
+        Image image = loadImage(imagePath);
+
+        mainImageView.setImage(image);
+    }
+
+    private Image loadImage(String imagePath) {
+
+        if (imagePath == null || imagePath.isBlank()) {
+            return null;
+        }
+
+        try {
+
+            if (imagePath.startsWith("http://")
+                    || imagePath.startsWith("https://")) {
+
+                return new Image(
+                        imagePath,
+                        true
+                );
+            }
+
+            var resource =
+                    getClass().getResource(imagePath);
+
+            if (resource == null) {
+                return null;
+            }
+
+            return new Image(
+                    resource.toExternalForm()
+            );
+
+        } catch (Exception exception) {
+
+            exception.printStackTrace();
+            return null;
+        }
     }
 
     @FXML

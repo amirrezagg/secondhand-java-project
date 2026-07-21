@@ -45,11 +45,11 @@
                              -fx-border-color: #e5e7eb;
                              -fx-border-radius: 12;">
 
-                    <ImageView fx:id="advertisementImageView"
-                               fitWidth="400"
-                               fitHeight="230"
-                               preserveRatio="true"/>
-
+                <TilePane fx:id="advertisementImagesPane"
+                          hgap="10"
+                          vgap="10"
+                          prefColumns="3"
+                          alignment="CENTER"/>
                     <Label fx:id="titleLabel"
                            text="Advertisement title"
                            style="-fx-font-size: 22px;

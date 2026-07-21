@@ -26,8 +26,13 @@ import java.util.List;
 import java.util.Comparator;
 
 import java.io.IOException;
+import ir.aut.secondhand.frontend.api.ApiClient;
+import ir.aut.secondhand.frontend.dto.AdvertisementResponse;
+import javafx.concurrent.Task;
 
 public class HomeController implements Initializable {
+
+    private final ApiClient apiClient = new ApiClient();
 
     @FXML
     private TextField searchField;
@@ -164,7 +169,7 @@ public class HomeController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle){
-        addMockAdvertisements();
+        loadAdvertisements();
 
         categoryFilterBox.getItems().addAll(
                 "لوازم الکترونیکی",
@@ -204,65 +209,6 @@ public class HomeController implements Initializable {
         sortBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
     }
 
-    private void addMockAdvertisements() {
-
-        advertisements.clear();
-
-        advertisements.add(
-                new Advertisement(
-                        1,
-                        "لپ‌تاپ دست دوم",
-                        "لپ‌تاپ سالم و مناسب کارهای روزمره",
-                        45_000_000L,
-                        "تهران",
-                        "لوازم الکترونیکی",
-                        "/ir/aut/secondhand/frontend/images/laptop.png",
-                        "ACTIVE"
-                )
-        );
-
-        advertisements.add(
-                new Advertisement(
-                        2,
-                        "صندلی اداری",
-                        "صندلی اداری راحت و سالم",
-                        8_000_000L,
-                        "کرج",
-                        "مبلمان",
-                        "/ir/aut/secondhand/frontend/images/chair.png",
-                        "ACTIVE"
-                )
-        );
-
-        advertisements.add(
-                new Advertisement(
-                        3,
-                        "آیفون ۱۲",
-                        "آیفون ۱۲ سالم با حافظه ۱۲۸ گیگابایت",
-                        50_000_000L,
-                        "اصفهان",
-                        "موبایل",
-                        "/ir/aut/secondhand/frontend/images/iphone.png",
-                        "ACTIVE"
-                )
-        );
-
-        advertisements.add(
-                new Advertisement(
-                        4,
-                        "میز چوبی",
-                        "میز چوبی مناسب پذیرایی",
-                        12_000_000L,
-                        "شیراز",
-                        "مبلمان",
-                        "/ir/aut/secondhand/frontend/images/table.png",
-                        "ACTIVE"
-                )
-        );
-
-        displayAdvertisements(advertisements);
-    }
-
     private void displayAdvertisements(List<Advertisement> advertisementList){
 
         advertisementTilePane.getChildren().clear();
@@ -285,9 +231,27 @@ public class HomeController implements Initializable {
                         "-fx-padding: 15;"
         );
 
-        Image image = new Image(
-                getClass().getResource(advertisement.getImagePath()).toExternalForm()
-        );
+        String imagePath =
+                advertisement.getImagePath();
+
+        Image image;
+
+        if (imagePath.startsWith("http://")
+                || imagePath.startsWith("https://")) {
+
+            image = new Image(
+                    imagePath,
+                    true
+            );
+
+        } else {
+
+            image = new Image(
+                    getClass()
+                            .getResource(imagePath)
+                            .toExternalForm()
+            );
+        }
 
         ImageView imageView = new ImageView(image);
         imageView.setFitWidth(190);
@@ -310,8 +274,22 @@ public class HomeController implements Initializable {
                 locationLabel
         );
 
-        card.setOnMouseClicked(mouseEvent -> openAdvertisementDetails(advertisement.getTitle(), String.format("%,d تومان", advertisement.getPrice()), advertisement.getCity() + " • " + advertisement.getCategory(), "این آگهی نمونه برای نمایش صفحه جزئیات آگهی است. بعداً اطلاعات واقعی از Backend دریافت می‌شود.", advertisement.getImagePath()
-        ));
+        card.setOnMouseClicked(mouseEvent ->
+                openAdvertisementDetails(
+                        advertisement.getTitle(),
+                        String.format(
+                                "%,d تومان",
+                                advertisement.getPrice()
+                        ),
+                        advertisement.getCity()
+                                + " • "
+                                + advertisement.getCategory(),
+                        advertisement.getDescription(),
+                        advertisement.getSellerName(),
+                        advertisement.getImagePath(),
+                        advertisement.getImageUrls()
+                )
+        );
 
         return card;
 
@@ -363,7 +341,7 @@ public class HomeController implements Initializable {
         stage.setMaximized(maximized);
     }
 
-    private void openAdvertisementDetails(String title, String price, String cityCategory, String description, String imagePath) {
+    private void openAdvertisementDetails(String title, String price, String cityCategory, String description, String sellerName, String imagePath, List<String> imageUrls) {
         try{
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/advertisement-details-view.fxml"));
 
@@ -371,7 +349,7 @@ public class HomeController implements Initializable {
 
             AdvertisementDetailsController controller = fxmlLoader.getController();
             controller.setPreviousPage("home");
-            controller.setAdvertisementDetails(title, price, cityCategory, description, imagePath);
+            controller.setAdvertisementDetails(title, price, cityCategory, description, sellerName,  imagePath, imageUrls);
 
             Stage stage = (Stage) advertisementTilePane.getScene().getWindow();
 
@@ -498,5 +476,85 @@ public class HomeController implements Initializable {
         sortBox.setValue(null);
 
         displayAdvertisements(advertisements);
+    }
+
+
+    private void loadAdvertisements() {
+
+        Task<List<AdvertisementResponse>> task = new Task<>() {
+
+            @Override
+            protected List<AdvertisementResponse> call() throws Exception {
+                return apiClient.getAdvertisements();
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+
+            advertisements.clear();
+
+            for (AdvertisementResponse ad : task.getValue()) {
+                List<String> imageUrls = new ArrayList<>();
+
+                if (ad.getImageUrls() != null) {
+
+                    for (String storedUrl : ad.getImageUrls()) {
+
+                        if (storedUrl == null || storedUrl.isBlank()) {
+                            continue;
+                        }
+
+                        String fullUrl = storedUrl;
+
+                        if (fullUrl.startsWith("/")) {
+                            fullUrl =
+                                    "http://localhost:8080"
+                                            + fullUrl;
+                        }
+
+                        imageUrls.add(fullUrl);
+                    }
+                }
+
+                String imagePath;
+
+                if (imageUrls.isEmpty()) {
+                    imagePath =
+                            "/ir/aut/secondhand/frontend/images/laptop.png";
+                } else {
+                    imagePath = imageUrls.get(0);
+                }
+
+                Advertisement advertisement =
+                        new Advertisement(
+                                ad.getId(),
+                                ad.getTitle(),
+                                ad.getDescription(),
+                                ad.getPriceAmount().longValue(),
+                                ad.getLocationName(),
+                                ad.getCategoryName(),
+                                imagePath,
+                                ad.getAdStatus(),
+                                ad.getSellerName(),
+                                imageUrls
+                        );
+
+                advertisements.add(advertisement);
+            }
+
+            displayAdvertisements(advertisements);
+        });
+
+        task.setOnFailed(event -> {
+
+            task.getException().printStackTrace();
+
+            advertisements.clear();
+            displayAdvertisements(advertisements);
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
     }
 }

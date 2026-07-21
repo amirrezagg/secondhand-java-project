@@ -11,12 +11,14 @@ public class CategoryResponse {
     private Long parentId;
     private String validationSchema;
     private List<CategoryResponse> subCategories = new ArrayList<>();
+    private Boolean selectable;
 
     public CategoryResponse(Category category) {
         this.id = category.getId();
         this.name = category.getName();
         this.parentId = category.getParent() != null ? category.getParent().getId() : null;
         this.validationSchema = category.getValidationSchema();
+        this.selectable = category.isSelectable();
     }
 
     public Long getId() {
@@ -49,6 +51,14 @@ public class CategoryResponse {
 
     public void setValidationSchema(String validationSchema) {
         this.validationSchema = validationSchema;
+    }
+
+    public Boolean getSelectable() {
+        return selectable;
+    }
+
+    public void setSelectable(Boolean selectable) {
+        this.selectable = selectable;
     }
 
     public List<CategoryResponse> getSubCategories() {
