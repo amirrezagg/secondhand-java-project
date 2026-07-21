@@ -1,17 +1,24 @@
 package ir.aut.secondhand.config;
 
+import java.util.List;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
 import ir.aut.secondhand.model.Category;
 import ir.aut.secondhand.model.Location;
 import ir.aut.secondhand.model.User;
 import ir.aut.secondhand.repository.CategoryRepository;
 import ir.aut.secondhand.repository.LocationRepository;
 import ir.aut.secondhand.repository.UserRepository;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
-import java.util.List;
-
+/**
+ * Initializes application seed data for users, categories, and locations during startup.
+ * Ensures baseline domain entities exist so that the secondhand marketplace has
+ * valid administrative access, location hierarchy, and category structure before
+ * the application becomes available.
+ */
 @Component
 public class DataInitializer implements CommandLineRunner {
 

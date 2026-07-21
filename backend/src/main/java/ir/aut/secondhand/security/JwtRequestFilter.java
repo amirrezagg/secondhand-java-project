@@ -19,6 +19,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * JWT authentication filter that validates and processes JWT tokens from incoming requests.
+ * 
+ * Intercepts each HTTP request to extract the JWT token from the Authorization header,
+ * validates it, and establishes the security context for authenticated users. Ensures that
+ * only non-expired tokens from non-blocked users are accepted for authentication.
+ */
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
