@@ -23,6 +23,7 @@ import ir.aut.secondhand.frontend.dto.MessageResponse;
 import ir.aut.secondhand.frontend.dto.SendMessageRequest;
 import ir.aut.secondhand.frontend.dto.AverageRateResponse;
 import ir.aut.secondhand.frontend.dto.RateUserRequest;
+import ir.aut.secondhand.frontend.dto.CategoryRequest;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -1430,6 +1431,117 @@ public class ApiClient {
                 response.body(),
                 AverageRateResponse.class
         );
+    }
+
+    public CategoryResponse createCategory(CategoryRequest categoryRequest)
+            throws IOException, InterruptedException {
+
+        String requestBody =
+                objectMapper.writeValueAsString(categoryRequest);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/categories"))
+                .header("Content-Type", "application/json")
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .POST(
+                        HttpRequest.BodyPublishers.ofString(requestBody)
+                )
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(response.body());
+        }
+
+        return objectMapper.readValue(
+                response.body(),
+                CategoryResponse.class
+        );
+    }
+
+    public CategoryResponse updateCategory(
+            Long categoryId,
+            CategoryRequest categoryRequest
+    ) throws IOException, InterruptedException {
+
+        String requestBody =
+                objectMapper.writeValueAsString(categoryRequest);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL
+                                        + "/categories/"
+                                        + categoryId
+                        )
+                )
+                .header("Content-Type", "application/json")
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .PUT(
+                        HttpRequest.BodyPublishers.ofString(requestBody)
+                )
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(response.body());
+        }
+
+        return objectMapper.readValue(
+                response.body(),
+                CategoryResponse.class
+        );
+    }
+
+    public void deleteCategory(Long categoryId)
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL
+                                        + "/categories/"
+                                        + categoryId
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(response.body());
+        }
     }
 
 }

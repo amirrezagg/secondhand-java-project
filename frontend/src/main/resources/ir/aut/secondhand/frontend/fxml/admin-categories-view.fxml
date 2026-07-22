@@ -55,6 +55,11 @@
                            promptText="Category name"
                            HBox.hgrow="ALWAYS"/>
 
+                <ComboBox
+                    fx:id="parentCategoryComboBox"
+                    promptText="Parent"
+                    prefWidth="180"/>
+
                 <Button text="Add"
                         onAction="#addCategory"/>
 
