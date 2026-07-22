@@ -276,6 +276,7 @@ public class HomeController implements Initializable {
 
         card.setOnMouseClicked(mouseEvent ->
                 openAdvertisementDetails(
+                        advertisement.getId(),
                         advertisement.getTitle(),
                         String.format(
                                 "%,d تومان",
@@ -341,7 +342,7 @@ public class HomeController implements Initializable {
         stage.setMaximized(maximized);
     }
 
-    private void openAdvertisementDetails(String title, String price, String cityCategory, String description, String sellerName, String imagePath, List<String> imageUrls) {
+    private void openAdvertisementDetails(Long advertisementId, String title, String price, String cityCategory, String description, String sellerName, String imagePath, List<String> imageUrls) {
         try{
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/advertisement-details-view.fxml"));
 
@@ -349,7 +350,7 @@ public class HomeController implements Initializable {
 
             AdvertisementDetailsController controller = fxmlLoader.getController();
             controller.setPreviousPage("home");
-            controller.setAdvertisementDetails(title, price, cityCategory, description, sellerName,  imagePath, imageUrls);
+            controller.setAdvertisementDetails(advertisementId, title, price, cityCategory, description, sellerName,  imagePath, imageUrls);
 
             Stage stage = (Stage) advertisementTilePane.getScene().getWindow();
 

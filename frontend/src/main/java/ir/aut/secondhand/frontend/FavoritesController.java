@@ -1,10 +1,15 @@
 package ir.aut.secondhand.frontend;
 
+import ir.aut.secondhand.frontend.api.ApiClient;
+import ir.aut.secondhand.frontend.dto.AdvertisementResponse;
+import ir.aut.secondhand.frontend.dto.FavoritesResponse;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -15,8 +20,19 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FavoritesController {
+
+    private static final String SERVER_URL =
+            "http://localhost:8080";
+
+    private static final String DEFAULT_IMAGE =
+            "/ir/aut/secondhand/frontend/images/laptop.png";
+
+    private final ApiClient apiClient =
+            new ApiClient();
 
     @FXML
     private TilePane favoritesTilePane;
@@ -26,17 +42,122 @@ public class FavoritesController {
         loadFavorites();
     }
 
+    private void loadFavorites() {
+
+        favoritesTilePane
+                .getChildren()
+                .clear();
+
+        Label loadingLabel =
+                new Label("Loading favorites...");
+
+        loadingLabel.setStyle(
+                "-fx-font-size: 14px;"
+                        + "-fx-text-fill: #6b7280;"
+        );
+
+        favoritesTilePane
+                .getChildren()
+                .add(loadingLabel);
+
+        Task<List<FavoritesResponse>> task =
+                new Task<>() {
+
+                    @Override
+                    protected List<FavoritesResponse> call()
+                            throws Exception {
+
+                        return apiClient.getFavorites();
+                    }
+                };
+
+        task.setOnSucceeded(event -> {
+
+            favoritesTilePane
+                    .getChildren()
+                    .clear();
+
+            List<FavoritesResponse> favorites =
+                    task.getValue();
+
+            if (favorites == null
+                    || favorites.isEmpty()) {
+
+                showEmptyFavorites();
+                return;
+            }
+
+            for (FavoritesResponse favorite : favorites) {
+
+                if (favorite == null
+                        || favorite.getAdvertisement() == null) {
+
+                    continue;
+                }
+
+                AdvertisementResponse advertisement =
+                        favorite.getAdvertisement();
+
+                favoritesTilePane
+                        .getChildren()
+                        .add(
+                                createFavoriteCard(
+                                        advertisement
+                                )
+                        );
+            }
+
+            if (favoritesTilePane
+                    .getChildren()
+                    .isEmpty()) {
+
+                showEmptyFavorites();
+            }
+        });
+
+        task.setOnFailed(event -> {
+
+            task.getException()
+                    .printStackTrace();
+
+            favoritesTilePane
+                    .getChildren()
+                    .clear();
+
+            Label errorLabel =
+                    new Label(
+                            "Could not load favorites."
+                    );
+
+            errorLabel.setStyle(
+                    "-fx-font-size: 14px;"
+                            + "-fx-text-fill: #dc2626;"
+                            + "-fx-font-weight: bold;"
+            );
+
+            favoritesTilePane
+                    .getChildren()
+                    .add(errorLabel);
+        });
+
+        Thread thread =
+                new Thread(task);
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
     private VBox createFavoriteCard(
-            String title,
-            String price,
-            String cityCategory,
-            String description,
-            String imagePath
+            AdvertisementResponse advertisement
     ) {
 
-        VBox card = new VBox();
-        card.setSpacing(8);
-        card.setAlignment(Pos.CENTER_RIGHT);
+        VBox card =
+                new VBox(8);
+
+        card.setAlignment(
+                Pos.CENTER_RIGHT
+        );
+
         card.setPrefWidth(220);
 
         card.setStyle(
@@ -48,9 +169,21 @@ public class FavoritesController {
                         + "-fx-cursor: hand;"
         );
 
-        ImageView imageView = new ImageView();
+        List<String> imageUrls =
+                normalizeImageUrls(
+                        advertisement.getImageUrls()
+                );
 
-        Image image = loadImage(imagePath);
+        String mainImagePath =
+                imageUrls.isEmpty()
+                        ? DEFAULT_IMAGE
+                        : imageUrls.get(0);
+
+        ImageView imageView =
+                new ImageView();
+
+        Image image =
+                loadImage(mainImagePath);
 
         if (image != null) {
             imageView.setImage(image);
@@ -61,14 +194,33 @@ public class FavoritesController {
         imageView.setPreserveRatio(false);
         imageView.setSmooth(true);
 
-        Label titleLabel = new Label(title);
+        String title =
+                advertisement.getTitle() == null
+                        ? "Untitled advertisement"
+                        : advertisement.getTitle();
+
+        Label titleLabel =
+                new Label(title);
+
+        titleLabel.setWrapText(true);
 
         titleLabel.setStyle(
                 "-fx-font-size: 16px;"
                         + "-fx-font-weight: bold;"
         );
 
-        Label priceLabel = new Label(price);
+        String formattedPrice =
+                advertisement.getPriceAmount() == null
+                        ? "Price not specified"
+                        : String.format(
+                        "%,d تومان",
+                        advertisement
+                                .getPriceAmount()
+                                .longValue()
+                );
+
+        Label priceLabel =
+                new Label(formattedPrice);
 
         priceLabel.setStyle(
                 "-fx-font-size: 14px;"
@@ -76,7 +228,31 @@ public class FavoritesController {
                         + "-fx-font-weight: bold;"
         );
 
-        Label locationLabel = new Label(cityCategory);
+        String locationName =
+                advertisement.getLocationName() == null
+                        || advertisement
+                        .getLocationName()
+                        .isBlank()
+                        ? "Unknown location"
+                        : advertisement.getLocationName();
+
+        String categoryName =
+                advertisement.getCategoryName() == null
+                        || advertisement
+                        .getCategoryName()
+                        .isBlank()
+                        ? "Unknown category"
+                        : advertisement.getCategoryName();
+
+        String cityCategory =
+                locationName
+                        + " • "
+                        + categoryName;
+
+        Label locationLabel =
+                new Label(cityCategory);
+
+        locationLabel.setWrapText(true);
 
         locationLabel.setStyle(
                 "-fx-font-size: 12px;"
@@ -84,18 +260,22 @@ public class FavoritesController {
         );
 
         Button removeButton =
-                new Button("Remove from favorites");
+                new Button(
+                        "Remove from favorites"
+                );
+
+        removeButton.setMaxWidth(
+                Double.MAX_VALUE
+        );
 
         removeButton.setOnAction(event -> {
 
-            /*
-             * مانع می‌شود کلیک روی دکمه Remove،
-             * صفحه جزئیات آگهی را هم باز کند.
-             */
             event.consume();
 
-            FavoritesManager.removeFavorite(title);
-            loadFavorites();
+            removeFromFavorites(
+                    advertisement.getId(),
+                    removeButton
+            );
         });
 
         card.getChildren().addAll(
@@ -106,23 +286,128 @@ public class FavoritesController {
                 removeButton
         );
 
-        card.setOnMouseClicked(event ->
+        card.setOnMouseClicked(event -> {
+
+            if (event.isStillSincePress()) {
+
                 openAdvertisementDetails(
-                        title,
-                        price,
+                        advertisement,
+                        formattedPrice,
                         cityCategory,
-                        description,
-                        "Unknown seller",
-                        imagePath
-                )
-        );
+                        mainImagePath,
+                        imageUrls
+                );
+            }
+        });
 
         return card;
     }
 
-    private Image loadImage(String imagePath) {
+    private void removeFromFavorites(
+            Long advertisementId,
+            Button removeButton
+    ) {
 
-        if (imagePath == null || imagePath.isBlank()) {
+        if (advertisementId == null) {
+
+            showError(
+                    "Advertisement ID is not available."
+            );
+
+            return;
+        }
+
+        removeButton.setDisable(true);
+        removeButton.setText("Removing...");
+
+        Task<Void> task =
+                new Task<>() {
+
+                    @Override
+                    protected Void call()
+                            throws Exception {
+
+                        apiClient.toggleFavorite(
+                                advertisementId
+                        );
+
+                        return null;
+                    }
+                };
+
+        task.setOnSucceeded(event ->
+                loadFavorites()
+        );
+
+        task.setOnFailed(event -> {
+
+            task.getException()
+                    .printStackTrace();
+
+            removeButton.setDisable(false);
+
+            removeButton.setText(
+                    "Remove from favorites"
+            );
+
+            showError(
+                    "Could not remove this advertisement from favorites."
+            );
+        });
+
+        Thread thread =
+                new Thread(task);
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private List<String> normalizeImageUrls(
+            List<String> storedImageUrls
+    ) {
+
+        List<String> normalizedUrls =
+                new ArrayList<>();
+
+        if (storedImageUrls == null) {
+            return normalizedUrls;
+        }
+
+        for (String storedUrl : storedImageUrls) {
+
+            if (storedUrl == null
+                    || storedUrl.isBlank()) {
+
+                continue;
+            }
+
+            if (storedUrl.startsWith("http://")
+                    || storedUrl.startsWith("https://")) {
+
+                normalizedUrls.add(storedUrl);
+
+            } else if (storedUrl.startsWith("/")) {
+
+                normalizedUrls.add(
+                        SERVER_URL + storedUrl
+                );
+
+            } else {
+
+                normalizedUrls.add(storedUrl);
+            }
+        }
+
+        return normalizedUrls;
+    }
+
+    private Image loadImage(
+            String imagePath
+    ) {
+
+        if (imagePath == null
+                || imagePath.isBlank()) {
+
             return null;
         }
 
@@ -138,7 +423,9 @@ public class FavoritesController {
             }
 
             URL resource =
-                    getClass().getResource(imagePath);
+                    getClass().getResource(
+                            imagePath
+                    );
 
             if (resource == null) {
                 return null;
@@ -155,86 +442,53 @@ public class FavoritesController {
         }
     }
 
-    @FXML
-    private void goBack() {
-
-        try {
-
-            FXMLLoader fxmlLoader =
-                    new FXMLLoader(
-                            getClass().getResource("/ir/aut/secondhand/frontend/fxml/home-view.fxml"
-                            )
-                    );
-
-            Parent root = fxmlLoader.load();
-
-            Stage stage =
-                    (Stage) favoritesTilePane
-                            .getScene()
-                            .getWindow();
-
-            double width = stage.getWidth();
-            double height = stage.getHeight();
-            boolean maximized = stage.isMaximized();
-
-            Scene scene =
-                    new Scene(
-                            root,
-                            width,
-                            height
-                    );
-
-            URL stylesheet =
-                    getClass().getResource(
-                            "/ir/aut/secondhand/frontend/css/style.css"
-                    );
-
-            if (stylesheet != null) {
-                scene.getStylesheets().add(
-                        stylesheet.toExternalForm()
-                );
-            }
-
-            stage.setScene(scene);
-            stage.setMaximized(maximized);
-
-        } catch (IOException exception) {
-            exception.printStackTrace();
-        }
-    }
-
     private void openAdvertisementDetails(
-            String title,
-            String price,
+            AdvertisementResponse advertisement,
+            String formattedPrice,
             String cityCategory,
-            String description,
-            String sellerName,
-            String imagePath
+            String mainImagePath,
+            List<String> imageUrls
     ) {
 
         try {
 
-            FXMLLoader fxmlLoader =
+            FXMLLoader loader =
                     new FXMLLoader(
                             getClass().getResource(
                                     "/ir/aut/secondhand/frontend/fxml/advertisement-details-view.fxml"
                             )
                     );
 
-            Parent root = fxmlLoader.load();
+            Parent root =
+                    loader.load();
 
             AdvertisementDetailsController controller =
-                    fxmlLoader.getController();
+                    loader.getController();
 
-            controller.setPreviousPage("favorites");
+            controller.setPreviousPage(
+                    "favorites"
+            );
+
+            String description =
+                    advertisement.getDescription() == null
+                            ? ""
+                            : advertisement.getDescription();
+
+            String sellerName =
+                    advertisement.getSellerName() == null|| advertisement
+                            .getSellerName()
+                            .isBlank()
+                            ? "Unknown seller"
+                            : advertisement.getSellerName();
 
             controller.setAdvertisementDetails(
-                    title,
-                    price,
+                    advertisement.getTitle(),
+                    formattedPrice,
                     cityCategory,
                     description,
                     sellerName,
-                    imagePath
+                    mainImagePath,
+                    imageUrls
             );
 
             Stage stage =
@@ -242,9 +496,14 @@ public class FavoritesController {
                             .getScene()
                             .getWindow();
 
-            double width = stage.getWidth();
-            double height = stage.getHeight();
-            boolean maximized = stage.isMaximized();
+            double width =
+                    stage.getWidth();
+
+            double height =
+                    stage.getHeight();
+
+            boolean maximized =
+                    stage.isMaximized();
 
             Scene scene =
                     new Scene(
@@ -259,39 +518,120 @@ public class FavoritesController {
                     );
 
             if (stylesheet != null) {
-                scene.getStylesheets().add(
-                        stylesheet.toExternalForm()
-                );
+
+                scene.getStylesheets()
+                        .add(
+                                stylesheet.toExternalForm()
+                        );
             }
 
             stage.setScene(scene);
             stage.setMaximized(maximized);
 
         } catch (IOException exception) {
+
             exception.printStackTrace();
+
+            showError(
+                    "Could not open advertisement details."
+            );
         }
     }
 
-    private void loadFavorites() {
+    private void showEmptyFavorites() {
+
+        Label emptyLabel =
+                new Label(
+                        "You have no favorite advertisements."
+                );
+
+        emptyLabel.setStyle(
+                "-fx-font-size: 15px;"
+                        + "-fx-text-fill: #6b7280;"
+        );
 
         favoritesTilePane
                 .getChildren()
-                .clear();
+                .add(emptyLabel);
+    }
 
-        for (FavoriteAdvertisement advertisement
-                : FavoritesManager.getFavorites()) {
+    private void showError(
+            String message
+    ) {
 
-            favoritesTilePane
-                    .getChildren()
-                    .add(
-                            createFavoriteCard(
-                                    advertisement.getTitle(),
-                                    advertisement.getPrice(),
-                                    advertisement.getCityCategory(),
-                                    advertisement.getDescription(),
-                                    advertisement.getImagePath()
+        Alert alert =
+                new Alert(
+                        Alert.AlertType.ERROR
+                );
+
+        alert.setTitle(
+                "Favorites Error"
+        );
+
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    @FXML
+    private void goBack() {
+
+        try {
+
+            FXMLLoader loader =
+                    new FXMLLoader(
+                            getClass().getResource(
+                                    "/ir/aut/secondhand/frontend/fxml/home-view.fxml"
                             )
                     );
+
+            Parent root =
+                    loader.load();
+
+            Stage stage =
+                    (Stage) favoritesTilePane
+                            .getScene()
+                            .getWindow();
+
+            double width =
+                    stage.getWidth();
+
+            double height =
+                    stage.getHeight();
+
+            boolean maximized =
+                    stage.isMaximized();
+
+            Scene scene =
+                    new Scene(
+                            root,
+                            width,
+                            height
+                    );
+
+            URL stylesheet =
+                    getClass().getResource(
+                            "/ir/aut/secondhand/frontend/css/style.css"
+                    );
+
+            if (stylesheet != null) {
+
+                scene.getStylesheets()
+                        .add(
+                                stylesheet.toExternalForm()
+                        );
+            }
+
+            stage.setScene(scene);
+            stage.setMaximized(maximized);
+
+        } catch (IOException exception) {
+
+            exception.printStackTrace();
+
+            showError(
+                    "Could not return to Home."
+            );
         }
     }
 }
