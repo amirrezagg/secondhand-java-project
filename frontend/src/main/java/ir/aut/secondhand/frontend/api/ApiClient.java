@@ -18,6 +18,9 @@ import ir.aut.secondhand.frontend.dto.CategoryResponse;
 import ir.aut.secondhand.frontend.dto.LocationResponse;
 import ir.aut.secondhand.frontend.dto.UpdateAdvertisementRequest;
 import ir.aut.secondhand.frontend.dto.FavoritesResponse;
+import ir.aut.secondhand.frontend.dto.ConversationResponse;
+import ir.aut.secondhand.frontend.dto.MessageResponse;
+import ir.aut.secondhand.frontend.dto.SendMessageRequest;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -1183,6 +1186,192 @@ public class ApiClient {
                             + response.body()
             );
         }
+    }
+
+
+    public List<ConversationResponse> getConversations()
+            throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL + "/conversations"
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Could not load conversations. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
+
+        var root = objectMapper.readTree(response.body());
+        var conversationsNode = root;
+
+        if (root.isObject()) {
+            if (root.has("items")) {
+                conversationsNode = root.get("items");
+            } else if (root.has("data")) {
+                conversationsNode = root.get("data");
+            } else if (root.has("content")) {
+                conversationsNode = root.get("content");
+            } else if (root.has("result")) {
+                conversationsNode = root.get("result");
+            }
+        }
+
+        if (!conversationsNode.isArray()) {
+            throw new IOException(
+                    "Unexpected conversations response: "
+                            + response.body()
+            );
+        }
+
+        return objectMapper.readerForListOf(
+                ConversationResponse.class
+        ).readValue(conversationsNode);
+    }
+
+    public List<MessageResponse> getMessages(
+            Long conversationId
+    ) throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL
+                                        + "/conversations/"
+                                        + conversationId
+                                        + "/messages"
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Could not load messages. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
+
+        var root = objectMapper.readTree(response.body());
+        var messagesNode = root;
+
+        if (root.isObject()) {
+            if (root.has("items")) {
+                messagesNode = root.get("items");
+            } else if (root.has("data")) {
+                messagesNode = root.get("data");
+            } else if (root.has("content")) {
+                messagesNode = root.get("content");
+            } else if (root.has("result")) {
+                messagesNode = root.get("result");
+            }
+        }
+
+        if (!messagesNode.isArray()) {
+            throw new IOException(
+                    "Unexpected messages response: "
+                            + response.body()
+            );
+        }
+
+        return objectMapper.readerForListOf(
+                MessageResponse.class
+        ).readValue(messagesNode);
+    }
+
+    public MessageResponse sendMessage(
+            Long conversationId,
+            SendMessageRequest requestBody
+    ) throws IOException, InterruptedException {
+
+        String body =
+                objectMapper.writeValueAsString(
+                        requestBody
+                );
+
+        String url =
+                BASE_URL + "/conversations/send";
+
+        if (conversationId != null) {
+
+            url += "?conversationId=" + conversationId;
+        }
+
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(
+                                URI.create(url)
+                        )
+                        .header(
+                                "Authorization",
+                                "Bearer " + SessionManager.getToken()
+                        )
+                        .header(
+                                "Content-Type",
+                                "application/json"
+                        )
+                        .POST(
+                                HttpRequest.BodyPublishers.ofString(
+                                        body
+                                )
+                        )
+                        .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Could not send message. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
+
+        return objectMapper.readValue(
+                response.body(),
+                MessageResponse.class
+        );
     }
 
 }

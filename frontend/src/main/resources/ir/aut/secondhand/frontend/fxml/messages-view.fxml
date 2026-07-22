@@ -45,10 +45,6 @@
                 <Label text="Conversations"
                        styleClass="sidebar-title"/>
 
-                <TextField fx:id="conversationSearchField"
-                           promptText="Search conversations..."
-                           styleClass="conversation-search"/>
-
                 <ListView fx:id="conversationListView"
                           VBox.vgrow="ALWAYS"
                           styleClass="conversation-list"/>
@@ -109,8 +105,6 @@
                             <Insets top="10" right="16" bottom="10" left="16"/>
                         </padding>
 
-                        <Button text="+"
-                                styleClass="attachment-button"/>
 
                         <TextField fx:id="messageField"
                                    promptText="Write a message..."

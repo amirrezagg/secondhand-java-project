@@ -46,6 +46,9 @@ public class AdvertisementDetailsController {
     private Label sellerLabel;
 
     @FXML
+    private Button messageSellerButton;
+
+    @FXML
     private Label ratingLabel;
 
     @FXML
@@ -153,6 +156,16 @@ public class AdvertisementDetailsController {
                         ? "Unknown seller"
                         : sellerName
         );
+
+        String currentUserFullName = SessionManager.getFullName();
+
+        boolean ownAdvertisement =
+                currentUserFullName != null
+                        && sellerName != null
+                        && currentUserFullName.equals(sellerName);
+
+        messageSellerButton.setVisible(!ownAdvertisement);
+        messageSellerButton.setManaged(!ownAdvertisement);
 
         List<String> galleryImages =
                 imageUrls == null
@@ -398,7 +411,7 @@ public class AdvertisementDetailsController {
             Parent root = fxmlLoader.load();
 
             MessagesController controller = fxmlLoader.getController();
-            controller.openConversation("Amirreza");
+            controller.openConversation(advertisementId, sellerLabel.getText());
 
             Stage stage = (Stage) mainImageView.getScene().getWindow();
 
