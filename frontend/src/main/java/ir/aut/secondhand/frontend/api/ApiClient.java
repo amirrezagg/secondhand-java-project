@@ -24,6 +24,7 @@ import ir.aut.secondhand.frontend.dto.SendMessageRequest;
 import ir.aut.secondhand.frontend.dto.AverageRateResponse;
 import ir.aut.secondhand.frontend.dto.RateUserRequest;
 import ir.aut.secondhand.frontend.dto.CategoryRequest;
+import ir.aut.secondhand.frontend.dto.SearchAdvertisementRequest;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -1542,6 +1543,74 @@ public class ApiClient {
 
             throw new IOException(response.body());
         }
+    }
+
+    public List<AdvertisementResponse> searchAdvertisements(
+            SearchAdvertisementRequest searchRequest
+    ) throws IOException, InterruptedException {
+
+        String requestBody =
+                objectMapper.writeValueAsString(searchRequest);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(
+                        BASE_URL + "/advertisements/search"
+                ))
+                .header(
+                        "Content-Type",
+                        "application/json"
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .POST(
+                        HttpRequest.BodyPublishers.ofString(
+                                requestBody
+                        )
+                )
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() < 200
+                || response.statusCode() >= 300) {
+
+            throw new IOException(
+                    "Could not search advertisements. Status: "
+                            + response.statusCode()
+                            + " Body: "
+                            + response.body()
+            );
+        }
+
+        var root = objectMapper.readTree(response.body());
+        var advertisementsNode = root;
+
+        if (root.isObject()) {
+            if (root.has("items")) {
+                advertisementsNode = root.get("items");
+            } else if (root.has("data")) {
+                advertisementsNode = root.get("data");
+            } else if (root.has("content")) {
+                advertisementsNode = root.get("content");
+            }
+        }
+
+        if (!advertisementsNode.isArray()) {
+            throw new IOException(
+                    "Unexpected search response: "
+                            + response.body()
+            );
+        }
+
+        return objectMapper.readerForListOf(
+                AdvertisementResponse.class
+        ).readValue(advertisementsNode);
     }
 
 }
