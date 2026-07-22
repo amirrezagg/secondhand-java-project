@@ -11,10 +11,16 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.Button;
 import java.io.IOException;
 import java.util.function.IntConsumer;
+import ir.aut.secondhand.frontend.api.ApiClient;
+import ir.aut.secondhand.frontend.dto.RateUserRequest;
+import javafx.concurrent.Task;
 
 import java.awt.*;
 
 public class RatingController {
+
+    private final ApiClient apiClient = new ApiClient();
+
     @FXML
     private ComboBox<Integer> ratingComboBox;
 
@@ -54,6 +60,11 @@ public class RatingController {
         this.previousScene = previousScene;
     }
 
+    private Long advertisementId;
+    public void setAdvertisementId(Long advertisementId){
+        this.advertisementId = advertisementId;
+    }
+
     @FXML
     public void initialize() {
 
@@ -62,30 +73,136 @@ public class RatingController {
     @FXML
     private void submitRating() {
 
-        if (selectedRating == 0) {
+        if (advertisementId == null) {
             messageLabel.setStyle(
-                    "-fx-text-fill: #dc2626;" + "-fx-font-weight: bold;"
+                    "-fx-text-fill: #dc2626;"
+                            + "-fx-font-weight: bold;"
             );
-            messageLabel.setText("Please select a rating.");
+
+            messageLabel.setText(
+                    "Advertisement ID not found."
+            );
+
             return;
         }
 
-        String comment = commentArea.getText().trim();
+        if (selectedRating == 0) {
+            messageLabel.setStyle(
+                    "-fx-text-fill: #dc2626;"
+                            + "-fx-font-weight: bold;"
+            );
 
-        System.out.println("Selected rating: " + selectedRating);
-        System.out.println("Comment: " + comment);
+            messageLabel.setText(
+                    "Please select a rating."
+            );
 
-        if (ratingSubmittedListener != null){
-            ratingSubmittedListener.accept(selectedRating);
+            return;
         }
 
+        String comment =
+                commentArea.getText() == null
+                        ? ""
+                        : commentArea.getText().trim();
+
+        if (comment.length() > 300) {
+            messageLabel.setStyle(
+                    "-fx-text-fill: #dc2626;"
+                            + "-fx-font-weight: bold;"
+            );
+
+            messageLabel.setText(
+                    "Comment must be at most 300 characters."
+            );
+
+            return;
+        }
+
+        RateUserRequest request =
+                new RateUserRequest(
+                        advertisementId,
+                        selectedRating,
+                        comment
+                );
+
         messageLabel.setStyle(
-                "-fx-text-fill: #16a34a; -fx-font-weight: bold;"
+                "-fx-text-fill: #64748b;"
+                        + "-fx-font-weight: bold;"
         );
 
         messageLabel.setText(
-                "Rating and comment submitted successfully."
+                "Submitting rating..."
         );
+
+        Task<Void> task = new Task<>() {
+
+            @Override
+            protected Void call() throws Exception {
+
+                apiClient.rateSeller(request);
+
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+
+            messageLabel.setStyle(
+                    "-fx-text-fill: #16a34a;"
+                            + "-fx-font-weight: bold;"
+            );
+
+            messageLabel.setText(
+                    "Rating and comment submitted successfully."
+            );
+
+            if (ratingSubmittedListener != null) {
+                ratingSubmittedListener.accept(
+                        selectedRating
+                );
+            }
+        });
+
+        task.setOnFailed(event -> {
+
+            messageLabel.setStyle(
+                    "-fx-text-fill: #dc2626;"
+                            + "-fx-font-weight: bold;"
+            );
+
+            String error =
+                    task.getException() == null
+                            ? ""
+                            : task.getException().getMessage();
+
+            if (error != null
+                    && error.toLowerCase().contains(
+                    "already submitted"
+            )) {
+
+                messageLabel.setText(
+                        "You have already rated this advertisement."
+                );
+
+            } else if (error != null
+                    && error.toLowerCase().contains(
+                    "cannot rate yourself"
+            )) {
+
+                messageLabel.setText(
+                        "You cannot rate your own advertisement."
+                );
+
+            } else {
+
+                messageLabel.setText(
+                        "Could not submit rating. Please try again."
+                );
+            }
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     @FXML
