@@ -17,12 +17,15 @@ import java.util.List;
 import javafx.scene.layout.HBox;
 import ir.aut.secondhand.frontend.api.ApiClient;
 import javafx.concurrent.Task;
+import ir.aut.secondhand.frontend.dto.AverageRateResponse;
 
 public class AdvertisementDetailsController {
 
     private final ApiClient apiClient = new ApiClient();
 
     private Long advertisementId;
+
+    private Long sellerId;
 
     @FXML
     private ImageView mainImageView;
@@ -87,11 +90,14 @@ public class AdvertisementDetailsController {
     @FXML
     private Label ratingCountLabel;
 
-    private final List<Integer> sellerRatings = new ArrayList<>(List.of(4,5,4));
 
     @FXML
     public void initialize() {
-        updateSellerRatingDisplay();
+        sellerRatingStarsLabel.setText("☆☆☆☆☆");
+        averageRatingLabel.setText("0.0");
+
+        ratingCountLabel.setVisible(false);
+        ratingCountLabel.setManaged(false);
     }
 
     @FXML
@@ -139,6 +145,7 @@ public class AdvertisementDetailsController {
             List<String> imageUrls
     ) {
         this.advertisementId = advertisementId;
+        this.sellerId = sellerId;
 
         currentTitle = title;
         currentPrice = price;
@@ -166,6 +173,9 @@ public class AdvertisementDetailsController {
 
         messageSellerButton.setVisible(!ownAdvertisement);
         messageSellerButton.setManaged(!ownAdvertisement);
+
+        rateSellerButton.setVisible(!ownAdvertisement);
+        rateSellerButton.setManaged(!ownAdvertisement);
 
         List<String> galleryImages =
                 imageUrls == null
@@ -239,6 +249,7 @@ public class AdvertisementDetailsController {
 
     public void setAdvertisementDetails(
             Long advertisementId,
+            Long sellerId,
             String title,
             String price,
             String cityCategory,
@@ -249,6 +260,7 @@ public class AdvertisementDetailsController {
     ) {
 
         this.advertisementId = advertisementId;
+        this.sellerId = sellerId;
 
         setAdvertisementDetails(
                 title,
@@ -259,6 +271,8 @@ public class AdvertisementDetailsController {
                 imagePath,
                 imageUrls
         );
+
+        loadSellerAverageRating();
     }
 
     private void showMainImage(String imagePath) {
@@ -448,6 +462,10 @@ public class AdvertisementDetailsController {
     @FXML
     public void openRatingPage() throws IOException {
 
+        if (SessionManager.getFullName() != null && SessionManager.getFullName().equals(sellerLabel.getText())){
+            return;
+        }
+
         Stage stage = (Stage)
                 rateSellerButton.getScene().getWindow();
 
@@ -465,12 +483,10 @@ public class AdvertisementDetailsController {
                 loader.getController();
 
         ratingController.setPreviousScene(previousScene);
+        ratingController.setAdvertisementId(advertisementId);
 
         ratingController.setRatingSubmittedListener(
-                rating -> {
-                    sellerRatings.add(rating);
-                    updateSellerRatingDisplay();
-                }
+                rating -> loadSellerAverageRating()
         );
 
         Scene ratingScene = new Scene(
@@ -491,41 +507,63 @@ public class AdvertisementDetailsController {
         stage.setMaximized(maximized);
     }
 
-    private void updateSellerRatingDisplay() {
 
-        int ratingCount = sellerRatings.size();
+    private void loadSellerAverageRating() {
 
-        if (ratingCount == 0) {
+        if (sellerId == null) {
 
             sellerRatingStarsLabel.setText("☆☆☆☆☆");
             averageRatingLabel.setText("0.0");
-            ratingCountLabel.setText("(0 ratings)");
-
             return;
         }
 
-        double average = sellerRatings
-                .stream()
-                .mapToInt(Integer::intValue)
-                .average()
-                .orElse(0.0);
+        Task<AverageRateResponse> task = new Task<>() {
 
-        int roundedAverage =
-                (int) Math.round(average);
+            @Override
+            protected AverageRateResponse call() throws Exception {
+                System.out.println("Seller ID = " + sellerId);
 
-        String stars =
-                "★".repeat(roundedAverage)
-                        + "☆".repeat(5 - roundedAverage);
+                return apiClient.getAverageRating(sellerId);
+            }
+        };
 
-        sellerRatingStarsLabel.setText(stars);
+        task.setOnSucceeded(event -> {
 
-        averageRatingLabel.setText(
-                String.format("%.1f", average)
-        );
+            AverageRateResponse response = task.getValue();
 
-        ratingCountLabel.setText(
-                "(" + ratingCount + " ratings)"
-        );
+            double average =
+                    response == null
+                            || response.getAverageRate() == null
+                            ? 0.0
+                            : response.getAverageRate();
+
+            int roundedAverage =
+                    (int) Math.round(average);
+
+            roundedAverage =
+                    Math.max(0, Math.min(5, roundedAverage));
+
+            sellerRatingStarsLabel.setText(
+                    "★".repeat(roundedAverage)
+                            + "☆".repeat(5 - roundedAverage)
+            );
+
+            averageRatingLabel.setText(
+                    String.format("%.1f", average)
+            );
+        });
+
+        task.setOnFailed(event -> {
+
+            task.getException().printStackTrace();
+
+            sellerRatingStarsLabel.setText("☆☆☆☆☆");
+            averageRatingLabel.setText("0.0");
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
     }
 
 }

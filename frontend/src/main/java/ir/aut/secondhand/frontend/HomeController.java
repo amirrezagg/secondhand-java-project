@@ -277,6 +277,7 @@ public class HomeController implements Initializable {
         card.setOnMouseClicked(mouseEvent ->
                 openAdvertisementDetails(
                         advertisement.getId(),
+                        advertisement.getSellerId(),
                         advertisement.getTitle(),
                         String.format(
                                 "%,d تومان",
@@ -342,32 +343,71 @@ public class HomeController implements Initializable {
         stage.setMaximized(maximized);
     }
 
-    private void openAdvertisementDetails(Long advertisementId, String title, String price, String cityCategory, String description, String sellerName, String imagePath, List<String> imageUrls) {
-        try{
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ir/aut/secondhand/frontend/fxml/advertisement-details-view.fxml"));
+    private void openAdvertisementDetails(
+            Long advertisementId,
+            Long sellerId,
+            String title,
+            String price,
+            String cityCategory,
+            String description,
+            String sellerName,
+            String imagePath,
+            List<String> imageUrls
+    ) {
+        try {
+
+            FXMLLoader fxmlLoader =
+                    new FXMLLoader(
+                            getClass().getResource(
+                                    "/ir/aut/secondhand/frontend/fxml/advertisement-details-view.fxml"
+                            )
+                    );
 
             Parent root = fxmlLoader.load();
 
-            AdvertisementDetailsController controller = fxmlLoader.getController();
-            controller.setPreviousPage("home");
-            controller.setAdvertisementDetails(advertisementId, title, price, cityCategory, description, sellerName,  imagePath, imageUrls);
+            AdvertisementDetailsController controller =
+                    fxmlLoader.getController();
 
-            Stage stage = (Stage) advertisementTilePane.getScene().getWindow();
+            controller.setPreviousPage("home");
+
+            controller.setAdvertisementDetails(
+                    advertisementId,
+                    sellerId,
+                    title,
+                    price,
+                    cityCategory,
+                    description,
+                    sellerName,
+                    imagePath,
+                    imageUrls
+            );
+
+            Stage stage =
+                    (Stage) advertisementTilePane
+                            .getScene()
+                            .getWindow();
 
             double width = stage.getWidth();
             double height = stage.getHeight();
             boolean maximized = stage.isMaximized();
 
-            Scene scene = new Scene(root, width, height);
-            scene.getStylesheets().add(getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
+            Scene scene =
+                    new Scene(root, width, height);
+
+            scene.getStylesheets().add(
+                    getClass().getResource(
+                            "/ir/aut/secondhand/frontend/css/style.css"
+                    ).toExternalForm()
+            );
 
             stage.setScene(scene);
             stage.setMaximized(maximized);
-        }
-        catch (IOException e){
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
     private void applyFilters() {
 
         String searchText = searchField
@@ -537,7 +577,8 @@ public class HomeController implements Initializable {
                                 imagePath,
                                 ad.getAdStatus(),
                                 ad.getSellerName(),
-                                imageUrls
+                                imageUrls,
+                                ad.getSellerId()
                         );
 
                 advertisements.add(advertisement);

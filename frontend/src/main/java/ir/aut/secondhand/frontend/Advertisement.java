@@ -15,6 +15,7 @@ public class Advertisement {
     private List<String> imageUrls = new ArrayList<>();
     private String status;
     private String sellerName;
+    private Long sellerId;
 
     public Advertisement(
             long id,
@@ -26,7 +27,8 @@ public class Advertisement {
             String imagePath,
             String status,
             String sellerName,
-            List<String> imageUrls
+            List<String> imageUrls,
+            Long sellerId
     ) {
         this.id = id;
         this.title = title;
@@ -37,6 +39,7 @@ public class Advertisement {
         this.imagePath = imagePath;
         this.status = status;
         this.sellerName = sellerName;
+        this.sellerId = sellerId;
 
         if (imageUrls != null){
             this.imageUrls = new ArrayList<>(imageUrls);
@@ -113,6 +116,10 @@ public class Advertisement {
 
     public List<String> getImageUrls() {
         return imageUrls;
+    }
+
+    public Long getSellerId() {
+        return sellerId;
     }
 
     public void setImageUrls(List<String> imageUrls) {

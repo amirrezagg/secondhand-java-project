@@ -21,6 +21,8 @@ import ir.aut.secondhand.frontend.dto.FavoritesResponse;
 import ir.aut.secondhand.frontend.dto.ConversationResponse;
 import ir.aut.secondhand.frontend.dto.MessageResponse;
 import ir.aut.secondhand.frontend.dto.SendMessageRequest;
+import ir.aut.secondhand.frontend.dto.AverageRateResponse;
+import ir.aut.secondhand.frontend.dto.RateUserRequest;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -1371,6 +1373,62 @@ public class ApiClient {
         return objectMapper.readValue(
                 response.body(),
                 MessageResponse.class
+        );
+    }
+
+    public void rateSeller(RateUserRequest request) throws Exception {
+
+        String body = objectMapper.writeValueAsString(request);
+
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/ratings"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getToken())
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200 &&
+                response.statusCode() != 201) {
+
+            throw new RuntimeException(response.body());
+        }
+    }
+
+    public AverageRateResponse getAverageRating(Long sellerId)
+            throws Exception {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(
+                        URI.create(
+                                BASE_URL +
+                                        "/ratings/seller/" +
+                                        sellerId +
+                                        "/average"
+                        )
+                )
+                .header(
+                        "Authorization",
+                        "Bearer " + SessionManager.getToken()
+                )
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException(response.body());
+        }
+
+        return objectMapper.readValue(
+                response.body(),
+                AverageRateResponse.class
         );
     }
 
