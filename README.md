@@ -8,12 +8,18 @@ A comprehensive, localized peer-to-peer marketplace platform tailored for studen
 
 This project was successfully designed and developed by our two-member team, splitting responsibilities between the backend infrastructure and frontend user experience:
 
+## 👥 Project Contributors & Roles
+
+This project was successfully designed and developed by our two-member team, splitting responsibilities between the backend infrastructure and frontend user experience:
+
 *   **Amirreza Ghasemi**
     *   **Role:** Frontend Developer (Java, JavaFX)
     *   **Student ID:** `40431426`
+    *   **Contributions:** Designed and implemented the complete desktop user interface using JavaFX and FXML. Structured the client-side architectural routing, built dynamic view components for listing catalogs, integrated the client-side REST endpoint communication controllers, and designed intuitive user views for the real-time peer-to-peer chat interface and student rating dashboards.
 *   **Ehsan Ahmadi**
     *   **Role:** Backend Developer (Java, Spring Boot, PostgreSQL)
     *   **Student ID:** `40431065`
+    *   **Contributions:** Engineered the monolithic backend core architecture utilizing Spring Boot and Spring Security with JWT authentication. Designed the relational PostgreSQL database schema, optimized JPA/Hibernate persistence workflows, enforced strict role-based access controls, and implemented the core business logic handling advertisement lifecycles, message delivery tracking, and administrative content moderation workflows.
 
 
 
@@ -105,26 +111,30 @@ For grading and evaluation purposes, use the following pre-configured credential
 ## 🚀 System Features & Capabilities
 
 Our marketplace platform is structurally divided into comprehensive feature modules based on user roles and functional workflows:
-
 ### 1. User Account & Authentication
 *   **Secure Authentication Pipeline:** Full student registration, login session initialization, and secure logout mechanisms utilizing stateless JSON Web Tokens (JWT)
 *   **Role-Based Security Gates:** Immediate request interception via Spring Security to validate roles and handle blocked user states dynamically
+    ![Login Page](./readmeassets/login%20page.png)
+    ![Profile Page](./readmeassets/profile.png)
 
 ### 2. Advertisement Lifecycle & Management
 *   **Multi-State Workflow:** Advertisements transit safely through specific lifecycles: `PENDING` -> `APPROVED` / `REJECTED` -> `SOLD`
 *   **Robust Content Listing:** Students can create full listings including title, description, price, currency, category, location, and multiple high-quality product images
 *   **Owner Actions:** Active sellers possess exclusive access to modify their listing details, switch item status to `SOLD`, or delete their active listings completely
 *   **Dynamic Review Feedback:** If an advertisement is marked as `REJECTED` by an administrator, the platform stores and displays specific review reasons directly to the user
+    ![Add Advertisement](./readmeassets/add%20advertisement.png)
+    ![Advertisement Page](./readmeassets/ad%20page.png)
 
 ### 3. Advanced Search & Filtering Engine
 *   **Granular Text Search:** Instant listing lookups based on key phrases matching titles and internal descriptions.
-*   **Hierarchical Filters:** Refine public listings dynamically using physical categories, municipal cities, custom price boundaries (minimum/maximum), and item condition attributes.
+*   **Hierarchical Filters:** Refine public listings dynamically using physical categories, municipal cities, and custom price boundaries (minimum/maximum).
 *   **Analytical Sorting:** Sort live listings seamlessly by timestamp metrics ("Newest First") or financial pricing values ("Cheapest First" / "Most Expensive First").
 
 ### 4. Peer-to-Peer Chat Communication
 *   **Ad-Bound Conversations:** Buyers can securely open explicit dialogue sessions (`Conversation`) directly from any public listing page
 *   **Message Logging:** Transparent text exchange history tracking individual sender origins, timestamps, and active dialogue overview lists
 *   **Security Constraints:** Automated request guards block chat initiations on unapproved items, closed conversations, or if one of the users is restricted by management
+    ![Messaging Page](./readmeassets/message.png)
 
 ### 5. Trusted Seller Rating System
 *   **Numeric Scoring:** Verified buyers can leave numerical ratings ranging strictly between 1 to 5 stars post-interaction.
@@ -136,3 +146,4 @@ Our marketplace platform is structurally divided into comprehensive feature modu
 *   **Central Audit Deck:** Complete dashboard enabling platform administrators to continuously review newly submitted `PENDING` listings
 *   **Moderation Controls:** One-click capabilities to instantly approve listings, issue custom text rejections, or delete inappropriate content permanently
 *   **User Registry Auditing:** Displays full user details with paginated tables alongside live toggle actions to block malicious accounts or restore access to rehabilitated users
+    ![Admin Panel](./readmeassets/admin%20panel.png)![Messaging Page](./readmeassets/admin panel.png)
