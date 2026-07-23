@@ -22,6 +22,7 @@ import ir.aut.secondhand.frontend.dto.AdvertisementResponse;
 import ir.aut.secondhand.frontend.dto.CreateAdvertisementRequest;
 import ir.aut.secondhand.frontend.dto.LocationResponse;
 import javafx.concurrent.Task;
+import javafx.scene.control.ListCell;
 import java.math.BigDecimal;
 
 public class AddAdvertisementController {
@@ -60,6 +61,7 @@ public class AddAdvertisementController {
 
     @FXML
     public void initialize() {
+        configureCategoryBox();
         loadCategories();
         loadLocations();
     }
@@ -393,18 +395,20 @@ public class AddAdvertisementController {
 
             categoryBox.getItems().clear();
 
-            List<CategoryResponse> selectableCategories =
+            List<CategoryResponse> allCategories =
                     new ArrayList<>();
 
             for (CategoryResponse category : task.getValue()) {
-                collectSelectableCategories(
+                collectAllCategories(
                         category,
-                        selectableCategories
+                        allCategories
                 );
             }
 
+            categoryBox.getItems().clear();
+
             categoryBox.getItems().addAll(
-                    selectableCategories
+                    allCategories
             );
 
             categoryBox.setDisable(false);
@@ -429,25 +433,29 @@ public class AddAdvertisementController {
         thread.start();
     }
 
-    private void collectSelectableCategories(
+    private void collectAllCategories(
             CategoryResponse category,
             List<CategoryResponse> result
     ) {
 
-        if (Boolean.TRUE.equals(category.getSelectable())) {
-            result.add(category);
+        if (category == null) {
+            return;
         }
 
-        if (category.getSubCategories() != null) {
+        result.add(category);
 
-            for (CategoryResponse subCategory
-                    : category.getSubCategories()) {
+        if (category.getSubCategories() == null) {
+            return;
+        }
 
-                collectSelectableCategories(
-                        subCategory,
-                        result
-                );
-            }
+        for (
+                CategoryResponse subCategory
+                : category.getSubCategories()
+        ) {
+            collectAllCategories(
+                    subCategory,
+                    result
+            );
         }
     }
 
@@ -531,6 +539,82 @@ public class AddAdvertisementController {
                 );
             }
         }
+    }
+
+    private void configureCategoryBox() {
+
+        categoryBox.setCellFactory(listView ->
+                new ListCell<>() {
+
+                    @Override
+                    protected void updateItem(
+                            CategoryResponse category,
+                            boolean empty
+                    ) {
+                        super.updateItem(category, empty);
+
+                        if (empty || category == null) {
+                            setText(null);
+                            setDisable(false);
+                            setStyle("");
+                            return;
+                        }
+
+                        setText(
+                                getCategoryDisplayName(category)
+                        );
+
+                        boolean selectable =
+                                Boolean.TRUE.equals(
+                                        category.getSelectable()
+                                );
+
+                        setDisable(!selectable);
+
+                        if (selectable) {
+                            setStyle(
+                                    "-fx-text-fill: #111827;"
+                            );
+                        } else {
+                            setStyle(
+                                    "-fx-text-fill: #6b7280;"
+                                            + "-fx-font-weight: bold;"
+                                            + "-fx-background-color: #f3f4f6;"
+                            );
+                        }
+                    }
+                }
+        );
+
+        categoryBox.setButtonCell(
+                new ListCell<>() {
+
+                    @Override
+                    protected void updateItem(
+                            CategoryResponse category,
+                            boolean empty
+                    ) {
+                        super.updateItem(category, empty);
+
+                        if (empty || category == null) {
+                            setText(null);
+                        } else {
+                            setText(category.getName());
+                        }
+                    }
+                }
+        );
+    }
+
+    private String getCategoryDisplayName(
+            CategoryResponse category
+    ) {
+
+        if (category.getParentId() == null) {
+            return category.getName();
+        }
+
+        return "    └ " + category.getName();
     }
 
 
