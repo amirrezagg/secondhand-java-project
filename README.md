@@ -2,12 +2,6 @@
 
 A comprehensive, localized peer-to-peer marketplace platform tailored for students at Amirkabir University of Technology (Tehran Polytechnic). This system facilitates secure item listings, real-time in-app messaging, advanced administrative user management, and trusted seller rating systems.
 
-
-
-## 👥 Project Contributors & Roles
-
-This project was successfully designed and developed by our two-member team, splitting responsibilities between the backend infrastructure and frontend user experience:
-
 ## 👥 Project Contributors & Roles
 
 This project was successfully designed and developed by our two-member team, splitting responsibilities between the backend infrastructure and frontend user experience:
@@ -15,7 +9,7 @@ This project was successfully designed and developed by our two-member team, spl
 *   **Amirreza Ghasemi**
     *   **Role:** Frontend Developer (Java, JavaFX)
     *   **Student ID:** `40431426`
-    *   **Contributions:** Designed and implemented the complete desktop user interface using JavaFX and FXML. Structured the client-side architectural routing, built dynamic view components for listing catalogs, integrated the client-side REST endpoint communication controllers, and designed intuitive user views for the real-time peer-to-peer chat interface and student rating dashboards.
+    *   **Contributions:** Designed and implemented the complete desktop user interface using JavaFX and FXML. Structured the client-side architectural routing, built dynamic view components for listing catalogs, integrated the client-side REST endpoint communication controllers, and designed intuitive user views for the peer-to-peer chat interface and student rating dashboards.
 *   **Ehsan Ahmadi**
     *   **Role:** Backend Developer (Java, Spring Boot, PostgreSQL)
     *   **Student ID:** `40431065`
