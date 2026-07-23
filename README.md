@@ -146,4 +146,4 @@ Our marketplace platform is structurally divided into comprehensive feature modu
 *   **Central Audit Deck:** Complete dashboard enabling platform administrators to continuously review newly submitted `PENDING` listings
 *   **Moderation Controls:** One-click capabilities to instantly approve listings, issue custom text rejections, or delete inappropriate content permanently
 *   **User Registry Auditing:** Displays full user details with paginated tables alongside live toggle actions to block malicious accounts or restore access to rehabilitated users
-    ![Admin Panel](./readmeassets/admin%20panel.png)![Messaging Page](./readmeassets/admin panel.png)
+    ![Admin Panel](./readmeassets/admin%20panel.png)
