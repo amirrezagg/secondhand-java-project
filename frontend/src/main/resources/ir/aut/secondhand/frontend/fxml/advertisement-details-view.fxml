@@ -97,7 +97,8 @@
                         <Button fx:id="addToFavoritesButton"
                                 text="Add to Favorites"
                                 onAction="#addToFavorites"/>
-                        <Button text="Message Seller"
+                        <Button fx:id="messageSellerButton"
+                                text="Message Seller"
                                 onAction="#messageSeller"/>
                         <Button fx:id="rateSellerButton"
                                 text="Rate Seller"

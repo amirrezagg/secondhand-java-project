@@ -1,34 +1,59 @@
 package ir.aut.secondhand.frontend;
 
-import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Label;
-import javafx.stage.Stage;
-import java.io.IOException;
+import ir.aut.secondhand.frontend.api.ApiClient;
+import ir.aut.secondhand.frontend.dto.ConversationResponse;
+import ir.aut.secondhand.frontend.dto.MessageResponse;
+import ir.aut.secondhand.frontend.dto.SendMessageRequest;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import java.util.HashMap;
-import java.util.Map;
-import java.time.LocalDateTime;
+import javafx.concurrent.Task;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import java.time.format.DateTimeFormatter;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 
 public class MessagesController {
-    @FXML
-    private ListView<String> conversationListView;
+
+    private final ApiClient apiClient =
+            new ApiClient();
+
+    private final ObservableList<ConversationResponse>
+            conversations =
+            FXCollections.observableArrayList();
+
+    private final ObservableList<MessageResponse>
+            displayedMessages =
+            FXCollections.observableArrayList();
+
+    private Long selectedConversationId;
+
+    private Long pendingAdvertisementId;
+    private String pendingContactName;
 
     @FXML
-    private ListView<MessageItem> messageListView;
+    private ListView<ConversationResponse>
+            conversationListView;
+
+    @FXML
+    private ListView<MessageResponse>
+            messageListView;
 
     @FXML
     private TextField messageField;
@@ -40,60 +65,35 @@ public class MessagesController {
     private Label conversationSubtitleLabel;
 
     @FXML
-    private final Map<String, ObservableList<MessageItem>> conversationMessages = new HashMap<>();
-
-    @FXML
-    private String selectedConversation;
-
-    @FXML
     private Label onlineStatusLabel;
 
     @FXML
     public void initialize() {
 
-        conversationListView.getItems().addAll(
-                "Amirreza", "Ehsan", "Sepeher");
-
-
-        conversationMessages.put(
-                "Amirreza",
-                FXCollections.observableArrayList(
-                        new MessageItem(
-                                "سلام، لپ‌تاپ هنوز موجوده؟",
-                                false,
-                                LocalDateTime.now().minusMinutes(25),
-                                true
-                        ),
-                        new MessageItem(
-                                "بله، هنوز موجوده.",
-                                true,
-                                LocalDateTime.now().minusMinutes(20),
-                                true
-                        )
-                )
+        conversationListView.setItems(
+                conversations
         );
 
-        conversationMessages.put(
-                "Ehsan",
-                FXCollections.observableArrayList(
-                        new MessageItem(
-                                "قیمت نهایی صندلی چقدره؟",
-                                false,
-                                LocalDateTime.now().minusHours(1),
-                                true
-                        )
-                )
+        messageListView.setItems(
+                displayedMessages
         );
 
-        conversationMessages.put(
-                "Sepeher",
-                FXCollections.observableArrayList()
-        );
+        configureMessageCells();
+        configureConversationCells();
+        configureConversationSelection();
+
+        loadConversations();
+    }
+
+    private void configureMessageCells() {
 
         messageListView.setCellFactory(listView -> new ListCell<>() {
 
             @Override
-            protected void updateItem(MessageItem message, boolean empty) {
+            protected void updateItem(
+                    MessageResponse message,
+                    boolean empty
+            ) {
                 super.updateItem(message, empty);
 
                 if (empty || message == null) {
@@ -102,49 +102,82 @@ public class MessagesController {
                     return;
                 }
 
-                Label messageLabel = new Label(message.getText());
+                Label messageLabel = new Label(
+                        safeText(message.getContent(), "")
+                );
+
                 messageLabel.setWrapText(true);
                 messageLabel.setMaxWidth(420);
 
-                DateTimeFormatter formatter =
-                        DateTimeFormatter.ofPattern("yyyy/MM/dd  HH:mm");
+                LocalDateTime messageTime =
+                        parseDateTime(message.getCreatedAt());
 
-                String status = "";
+                String currentUserName = SessionManager.getFullName();
 
-                if (message.isSentByMe()) {
-                    status = message.isSeen() ? "  ✓✓" : "  ✓";
+                boolean sentByMe =
+                        currentUserName != null
+                                && currentUserName.equals(message.getSenderName());
+
+                String tick = "";
+
+                if (sentByMe) {
+                    tick = "SEEN".equalsIgnoreCase(message.getMessageStatus())
+                            ? " ✓✓"
+                            : " ✓";
                 }
 
                 Label timeLabel = new Label(
-                        formatter.format(message.getDateTime()) + status
+                        messageTime.format(
+                                DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+                        ) + tick
                 );
 
-                timeLabel.setStyle(
-                        "-fx-font-size: 10px; -fx-text-fill: #64748b;"
+                if (sentByMe
+                        && "SEEN".equalsIgnoreCase(message.getMessageStatus())) {
+
+                    timeLabel.setStyle(
+                            "-fx-font-size: 10px;"
+                                    + "-fx-text-fill: #2563eb;"
+                    );
+
+                } else {
+
+                    timeLabel.setStyle(
+                            "-fx-font-size: 10px;"
+                                    + "-fx-text-fill: #64748b;"
+                    );
+                }
+
+                VBox bubble = new VBox(
+                        4,
+                        messageLabel,
+                        timeLabel
                 );
 
-                VBox bubble = new VBox(4, messageLabel, timeLabel);
                 bubble.setMaxWidth(450);
-                bubble.setPadding(new Insets(9, 12, 9, 12));
+                bubble.setPadding(
+                        new Insets(9, 12, 9, 12)
+                );
 
                 HBox row = new HBox(bubble);
 
-                if (message.isSentByMe()) {
+
+                if (sentByMe) {
                     row.setAlignment(Pos.CENTER_RIGHT);
 
                     bubble.setStyle(
-                            "-fx-background-color: #dbeafe;" +
-                                    "-fx-background-radius: 14;" +
-                                    "-fx-border-radius: 14;"
+                            "-fx-background-color: #dbeafe;"
+                                    + "-fx-background-radius: 14;"
+                                    + "-fx-border-radius: 14;"
                     );
                 } else {
                     row.setAlignment(Pos.CENTER_LEFT);
 
                     bubble.setStyle(
-                            "-fx-background-color: white;" +
-                                    "-fx-background-radius: 14;" +
-                                    "-fx-border-radius: 14;" +
-                                    "-fx-border-color: #e5e7eb;"
+                            "-fx-background-color: white;"
+                                    + "-fx-background-radius: 14;"
+                                    + "-fx-border-radius: 14;"
+                                    + "-fx-border-color: #e5e7eb;"
                     );
                 }
 
@@ -152,166 +185,672 @@ public class MessagesController {
                 setGraphic(row);
             }
         });
-
-        conversationListView.setCellFactory(listView -> new ListCell<>() {
-
-            @Override
-            protected void updateItem(String conversationName, boolean empty) {
-                super.updateItem(conversationName, empty);
-
-                if (empty || conversationName == null) {
-                    setText(null);
-                    setGraphic(null);
-                    return;
-                }
-
-                Label nameLabel = new Label(conversationName);
-                nameLabel.setStyle(
-                        "-fx-font-size: 14px;" +
-                                "-fx-font-weight: bold;" +
-                                "-fx-text-fill: #1f2937;"
-                );
-
-                ObservableList<MessageItem> messages =
-                        conversationMessages.get(conversationName);
-
-                String lastMessageText = "No messages yet";
-                String lastMessageTime = "";
-
-                if (messages != null && !messages.isEmpty()) {
-                    MessageItem lastMessage =
-                            messages.get(messages.size() - 1);
-
-                    lastMessageText = lastMessage.getText();
-
-                    if (lastMessageText.length() > 28) {
-                        lastMessageText =
-                                lastMessageText.substring(0, 28) + "...";
-                    }
-
-                    DateTimeFormatter timeFormatter =
-                            DateTimeFormatter.ofPattern("HH:mm");
-
-                    lastMessageTime =
-                            timeFormatter.format(lastMessage.getDateTime());
-                }
-
-                Label lastMessageLabel = new Label(lastMessageText);
-                lastMessageLabel.setStyle(
-                        "-fx-font-size: 12px;" +
-                                "-fx-text-fill: #64748b;"
-                );
-
-                Label timeLabel = new Label(lastMessageTime);
-                timeLabel.setStyle(
-                        "-fx-font-size: 11px;" +
-                                "-fx-text-fill: #94a3b8;"
-                );
-
-                VBox textBox = new VBox(4, nameLabel, lastMessageLabel);
-
-                Region spacer = new Region();
-                HBox.setHgrow(spacer, Priority.ALWAYS);
-
-                HBox conversationRow = new HBox(
-                        10,
-                        textBox,
-                        spacer,
-                        timeLabel
-                );
-
-                conversationRow.setAlignment(Pos.CENTER_LEFT);
-                conversationRow.setPadding(
-                        new Insets(8, 6, 8, 6)
-                );
-
-                setText(null);
-                setGraphic(conversationRow);
-            }
-        });
-
-        conversationListView.getSelectionModel()
-                .selectedItemProperty()
-                .addListener((observable, oldValue, newValue) -> {
-
-                    if (newValue == null) {
-                        return;
-                    }
-
-                    selectedConversation = newValue;
-
-                    conversationTitleLabel.setText(newValue);
-                    conversationSubtitleLabel.setText("Online");
-
-
-                    messageListView.setItems(
-                            conversationMessages.get(newValue)
-                    );
-                });
     }
 
-    @FXML
-    private void goBack() {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(
-                    getClass().getResource("/ir/aut/secondhand/frontend/fxml/home-view.fxml"));
+    private void configureConversationCells() {
 
-            Parent root = fxmlLoader.load();
+        conversationListView.setCellFactory(
+                listView -> new ListCell<>() {
 
-            Stage stage = (Stage) conversationListView.getScene().getWindow();
+                    @Override
+                    protected void updateItem(
+                            ConversationResponse conversation,
+                            boolean empty
+                    ) {
 
-            double width = stage.getWidth();
-            double height = stage.getHeight();
-            boolean maximized = stage.isMaximized();
+                        super.updateItem(
+                                conversation,
+                                empty
+                        );
 
-            Scene scene = new Scene(root, width, height);
-            scene.getStylesheets().add(
-                    getClass().getResource("/ir/aut/secondhand/frontend/css/style.css").toExternalForm());
+                        if (empty || conversation == null) {
 
-            stage.setScene(scene);
-            stage.setMaximized(maximized);
+                            setText(null);
+                            setGraphic(null);
+                            return;
+                        }
 
-        } catch (IOException e) {
-            e.printStackTrace();
+                        String contactName =
+                                safeText(
+                                        conversation.getContactName(),
+                                        "Unknown user"
+                                );
+
+                        Label nameLabel =
+                                new Label(contactName);
+
+                        nameLabel.setStyle(
+                                "-fx-font-size: 14px;"
+                                        + "-fx-font-weight: bold;"
+                                        + "-fx-text-fill: #1f2937;"
+                        );
+
+                        String advertisementTitle =
+                                safeText(
+                                        conversation
+                                                .getAdvertisementTitle(),
+                                        "Advertisement"
+                                );
+
+                        Label advertisementLabel =
+                                new Label(
+                                        advertisementTitle
+                                );
+
+                        advertisementLabel.setStyle(
+                                "-fx-font-size: 11px;"
+                                        + "-fx-text-fill: #475569;"
+                        );
+
+                        String lastMessage =
+                                safeText(
+                                        conversation.getLastMessage(),
+                                        "No messages yet"
+                                );
+
+                        if (lastMessage.length() > 28) {
+
+                            lastMessage =
+                                    lastMessage.substring(
+                                            0,
+                                            28
+                                    ) + "...";
+                        }
+
+                        Label lastMessageLabel =
+                                new Label(lastMessage);
+
+                        lastMessageLabel.setStyle(
+                                "-fx-font-size: 12px;"
+                                        + "-fx-text-fill: #64748b;"
+                        );
+
+                        Label timeLabel =
+                                new Label(
+                                        formatConversationTime(
+                                                conversation
+                                                        .getLastUpdatedAt()
+                                        )
+                                );
+
+                        timeLabel.setStyle(
+                                "-fx-font-size: 11px;"
+                                        + "-fx-text-fill: #94a3b8;"
+                        );
+
+                        VBox textBox =
+                                new VBox(
+                                        3,
+                                        nameLabel,
+                                        advertisementLabel,
+                                        lastMessageLabel
+                                );
+
+                        Region spacer =
+                                new Region();
+
+                        HBox.setHgrow(
+                                spacer,
+                                Priority.ALWAYS
+                        );
+
+                        HBox row =
+                                new HBox(
+                                        10,
+                                        textBox,
+                                        spacer,
+                                        timeLabel
+                                );
+
+                        row.setAlignment(
+                                Pos.CENTER_LEFT
+                        );
+
+                        row.setPadding(
+                                new Insets(
+                                        8,
+                                        6,
+                                        8,
+                                        6
+                                )
+                        );
+
+                        setText(null);
+                        setGraphic(row);
+                    }
+                }
+        );
+    }
+
+    private void configureConversationSelection() {
+
+        conversationListView
+                .getSelectionModel()
+                .selectedItemProperty()
+                .addListener(
+                        (
+                                observable,
+                                oldConversation,
+                                newConversation
+                        ) -> {
+
+                            if (newConversation == null) {
+                                return;
+                            }
+
+                            selectedConversationId =
+                                    newConversation.getId();
+
+                            pendingAdvertisementId =
+                                    newConversation
+                                            .getAdvertisementId();
+
+                            pendingContactName =
+                                    newConversation
+                                            .getContactName();
+
+                            conversationTitleLabel.setText(
+                                    safeText(newConversation
+                                                    .getContactName(),
+                                            "Unknown user"
+                                    )
+                            );
+
+                            conversationSubtitleLabel.setText(
+                                    safeText(
+                                            newConversation
+                                                    .getAdvertisementTitle(),
+                                            "Advertisement"
+                                    )
+                            );
+
+                            onlineStatusLabel.setText("");
+
+                            loadMessages(
+                                    selectedConversationId
+                            );
+                        }
+                );
+    }
+
+    private void loadConversations() {
+
+        setStatus(
+                "Loading conversations...",
+                false
+        );
+
+        Task<List<ConversationResponse>> task =
+                new Task<>() {
+
+                    @Override
+                    protected List<ConversationResponse> call()
+                            throws Exception {
+
+                        return apiClient
+                                .getConversations();
+                    }
+                };
+
+        task.setOnSucceeded(event -> {
+
+            conversations.setAll(
+                    task.getValue() == null
+                            ? List.of()
+                            : task.getValue()
+            );
+
+            setStatus("", false);
+
+            if (conversations.isEmpty()) {
+
+                conversationTitleLabel.setText(
+                        pendingContactName == null
+                                ? "No conversations"
+                                : pendingContactName
+                );
+
+                conversationSubtitleLabel.setText(
+                        pendingAdvertisementId == null
+                                ? "Your conversations will appear here."
+                                : "Write a message to start this conversation."
+                );
+
+                return;
+            }
+
+            selectRequestedConversation();
+        });
+
+        task.setOnFailed(event -> {
+
+            task.getException()
+                    .printStackTrace();
+
+            conversations.clear();
+
+            setStatus(
+                    "Could not load conversations.",
+                    true
+            );
+        });
+
+        startTask(task);
+    }
+
+    private void selectRequestedConversation() {
+
+        ConversationResponse matchingConversation = null;
+
+        if (selectedConversationId != null) {
+
+            for (ConversationResponse conversation : conversations) {
+
+                if (selectedConversationId.equals(
+                        conversation.getId()
+                )) {
+                    matchingConversation = conversation;
+                    break;
+                }
+            }
         }
+
+        if (matchingConversation == null
+                && pendingAdvertisementId != null) {
+
+            for (ConversationResponse conversation : conversations) {
+
+                if (pendingAdvertisementId.equals(
+                        conversation.getAdvertisementId()
+                )) {
+                    matchingConversation = conversation;
+                    break;
+                }
+            }
+        }
+
+        if (matchingConversation != null) {
+
+            conversationListView
+                    .getSelectionModel()
+                    .select(matchingConversation);
+
+            conversationListView
+                    .scrollTo(matchingConversation);
+
+            return;
+        }
+
+        if (pendingAdvertisementId != null) {
+
+            conversationListView
+                    .getSelectionModel()
+                    .clearSelection();
+
+            selectedConversationId = null;
+
+            displayedMessages.clear();
+
+            conversationTitleLabel.setText(
+                    safeText(
+                            pendingContactName,
+                            "Seller"
+                    )
+            );
+
+            conversationSubtitleLabel.setText(
+                    "Write a message to start the conversation."
+            );
+
+            return;
+        }
+
+        if (!conversations.isEmpty()) {
+
+            conversationListView
+                    .getSelectionModel()
+                    .selectFirst();
+        }
+    }
+
+    private void loadMessages(Long conversationId) {
+
+        if (conversationId == null) {
+            return;
+        }
+
+        displayedMessages.clear();
+
+        setStatus("Loading messages...", false);
+
+        Task<List<MessageResponse>> task = new Task<>() {
+
+            @Override
+            protected List<MessageResponse> call() throws Exception {
+                return apiClient.getMessages(conversationId);
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+            List<MessageResponse> messages = task.getValue();
+
+            displayedMessages.setAll(messages == null ? List.of() : messages);
+
+            setStatus("", false);
+            scrollToLastMessage();
+        });
+
+        task.setOnFailed(event -> {
+
+            displayedMessages.clear();
+
+            task.getException().printStackTrace();
+
+            setStatus(
+                    "Could not load messages.",
+                    true
+            );
+        });
+
+        startTask(task);
     }
 
     @FXML
     private void sendMessage() {
 
-        if (selectedConversation == null) {
+        String messageText =
+                messageField.getText();
+
+        if (messageText == null
+                || messageText.isBlank()) {
+
+            setStatus(
+                    "Message cannot be empty.",
+                    true
+            );
+
             return;
         }
 
-        String messageText = messageField.getText();
+        if (selectedConversationId == null
+                && pendingAdvertisementId == null) {
 
-        if (messageText == null || messageText.isBlank()) {
+            setStatus(
+                    "Select a conversation first.",
+                    true
+            );
+
             return;
         }
 
-        MessageItem newMessage = new MessageItem(messageText, true, LocalDateTime.now(), false);
+        messageField.setDisable(true);
 
-        conversationMessages.get(selectedConversation).add(newMessage);
+        setStatus(
+                "Sending...",
+                false
+        );
 
-        messageField.clear();
+        SendMessageRequest request =
+                new SendMessageRequest(
+                        selectedConversationId == null
+                                ? pendingAdvertisementId
+                                : null,
+                        messageText.trim()
+                );
 
-        messageListView.scrollTo(messageListView.getItems().size() - 1);
+        Long conversationIdForRequest =
+                selectedConversationId;
 
-        conversationListView.refresh();
+        Task<MessageResponse> task =
+                new Task<>() {
+
+                    @Override
+                    protected MessageResponse call()
+                            throws Exception {
+
+                        return apiClient.sendMessage(
+                                conversationIdForRequest,
+                                request
+                        );
+                    }
+                };
+
+        task.setOnSucceeded(event -> {
+
+            messageField.clear();
+            messageField.setDisable(false);
+
+            MessageResponse sentMessage = task.getValue();
+
+
+            if (sentMessage != null) {
+                displayedMessages.add(sentMessage);
+                scrollToLastMessage();
+
+            }
+            setStatus("", false);
+
+            loadConversations();
+        });
+
+        task.setOnFailed(event -> {
+
+            messageField.setDisable(false);
+
+            task.getException()
+                    .printStackTrace();
+
+            setStatus(
+                    extractExceptionMessage(
+                            task.getException(),
+                            "Could not send message."
+                    ),
+                    true
+            );
+        });
+
+        startTask(task);
     }
 
-    public void openConversation(String conversationName){
-        if (conversationName == null || conversationName.isBlank()){
-            return;
+
+    public void openConversation(
+            Long advertisementId,
+            String contactName
+    ) {
+
+        pendingAdvertisementId =
+                advertisementId;
+
+        pendingContactName =
+                contactName;
+
+        selectedConversationId =
+                null;
+
+        conversationTitleLabel.setText(
+                safeText(
+                        contactName,
+                        "Seller"
+                )
+        );
+
+        conversationSubtitleLabel.setText(
+                "Write a message to start the conversation."
+        );
+
+        if (!conversations.isEmpty()) {
+            selectRequestedConversation();
+        }
+    }
+
+
+    private void scrollToLastMessage() {
+
+        if (!displayedMessages.isEmpty()) {
+
+            messageListView.scrollTo(
+                    displayedMessages.size() - 1
+            );
+        }
+    }
+
+    private LocalDateTime parseDateTime(
+            String dateTime
+    ) {
+
+        if (dateTime == null
+                || dateTime.isBlank()) {
+
+            return LocalDateTime.now();
         }
 
-        if (!conversationListView.getItems().contains(conversationName)){
-            conversationListView.getItems().add(conversationName);
+        try {
 
-            conversationMessages.put(conversationName, FXCollections.observableArrayList());
+            return LocalDateTime.parse(
+                    dateTime
+            );
+
+        } catch (DateTimeParseException exception) {
+
+            return LocalDateTime.now();
+        }
+    }
+
+    private String formatConversationTime(
+            String dateTime
+    ) {
+
+        if (dateTime == null
+                || dateTime.isBlank()) {
+
+            return "";
         }
 
-        conversationListView.getSelectionModel().select(conversationName);
-        conversationListView.scrollTo(conversationName);
+        try {
+
+            LocalDateTime parsed =
+                    LocalDateTime.parse(
+                            dateTime
+                    );
+
+            return parsed.format(
+                    DateTimeFormatter.ofPattern(
+                            "HH:mm"
+                    )
+            );
+
+        } catch (DateTimeParseException exception) {
+
+            return "";
+        }
+    }
+
+    private String safeText(
+            String value,
+            String fallback
+    ) {
+
+        return value == null
+                || value.isBlank()
+                ? fallback
+                : value;
+    }
+
+    private void setStatus(
+            String message,
+            boolean error
+    ) {
+
+        onlineStatusLabel.setText(
+                message
+        );
+
+        onlineStatusLabel.setStyle(
+                error
+                        ? "-fx-text-fill: #dc2626;"
+                        + "-fx-font-weight: bold;": "-fx-text-fill: #64748b;"
+        );
+    }
+
+    private String extractExceptionMessage(
+            Throwable throwable,
+            String fallback
+    ) {
+
+        if (throwable == null
+                || throwable.getMessage() == null
+                || throwable.getMessage().isBlank()) {
+
+            return fallback;
+        }
+
+        return throwable.getMessage();
+    }
+
+    private void startTask(
+            Task<?> task
+    ) {
+
+        Thread thread =
+                new Thread(task);
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    @FXML
+    private void goBack() {
+
+        try {
+
+            FXMLLoader loader =
+                    new FXMLLoader(
+                            getClass().getResource(
+                                    "/ir/aut/secondhand/frontend/fxml/home-view.fxml"
+                            )
+                    );
+
+            Parent root =
+                    loader.load();
+
+            Stage stage =
+                    (Stage) conversationListView
+                            .getScene()
+                            .getWindow();
+
+            double width =
+                    stage.getWidth();
+
+            double height =
+                    stage.getHeight();
+
+            boolean maximized =
+                    stage.isMaximized();
+
+            Scene scene =
+                    new Scene(
+                            root,
+                            width,
+                            height
+                    );
+
+            scene.getStylesheets().add(
+                    getClass().getResource(
+                            "/ir/aut/secondhand/frontend/css/style.css"
+                    ).toExternalForm()
+            );
+
+            stage.setScene(scene);
+            stage.setMaximized(maximized);
+
+        } catch (IOException exception) {
+
+            exception.printStackTrace();
+
+            setStatus(
+                    "Could not return to Home.",
+                    true
+            );
+        }
     }
 }

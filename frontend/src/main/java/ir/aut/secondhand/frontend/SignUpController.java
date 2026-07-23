@@ -97,10 +97,17 @@ public class SignUpController {
             hasError = true;
         }
 
-        if (password.isBlank()){
+        if (password.isBlank()) {
             showError(phoneField, passwordErrorLabel, "Password is required");
-            hasError = true;
+
         }
+
+            else if (password.length() < 8){
+                showError(passwordField, passwordErrorLabel, "Password must contain at least 8 characters");
+
+                hasError = true;
+            }
+
 
         if (confirmPassword.isBlank()){
             showError(confirmPasswordField, confirmPasswordErrorLabel, "Please confirm your password");
