@@ -39,6 +39,8 @@ public class AdminDashboardController {
 
     @FXML
     private void logout() {
+        SessionManager.clearSession();
+
         openPage(
                 "/ir/aut/secondhand/frontend/fxml/login-view.fxml"
         );
@@ -213,6 +215,8 @@ public class AdminDashboardController {
     }
 
     private void loadPendingAdvertisements() {
+
+
 
         showLoading(
                 "Loading pending advertisements..."

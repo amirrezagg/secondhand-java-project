@@ -455,7 +455,6 @@ public class MessagesController {
             }
         }
 
-
         if (matchingConversation == null
                 && pendingAdvertisementId != null) {
 
@@ -479,7 +478,34 @@ public class MessagesController {
             conversationListView
                     .scrollTo(matchingConversation);
 
-        } else if (!conversations.isEmpty()) {
+            return;
+        }
+
+        if (pendingAdvertisementId != null) {
+
+            conversationListView
+                    .getSelectionModel()
+                    .clearSelection();
+
+            selectedConversationId = null;
+
+            displayedMessages.clear();
+
+            conversationTitleLabel.setText(
+                    safeText(
+                            pendingContactName,
+                            "Seller"
+                    )
+            );
+
+            conversationSubtitleLabel.setText(
+                    "Write a message to start the conversation."
+            );
+
+            return;
+        }
+
+        if (!conversations.isEmpty()) {
 
             conversationListView
                     .getSelectionModel()
